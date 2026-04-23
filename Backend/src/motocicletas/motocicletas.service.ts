@@ -3,61 +3,81 @@ import {
   Injectable,
   InternalServerErrorException,
   NotFoundException,
-  OnModuleInit,
 } from '@nestjs/common';
-import { promises as fs } from 'fs';
-import * as path from 'path';
+import { ResultSetHeader, RowDataPacket } from 'mysql2/promise';
+import { MysqlService } from '../database/mysql.service';
 import { Mantenimiento, Moto } from './motocicletas.types';
 
+type MotoRow = RowDataPacket & {
+  id: string;
+  placa: string;
+  marca: string;
+  modelo: string;
+  anio: number;
+  cilindraje: string;
+  estado: string;
+  propietario: string;
+  fechaRegistro: string | Date;
+};
+
+type MantenimientoRow = RowDataPacket & {
+  id: string;
+  moto_id: string;
+  tipo: string;
+  descripcion: string;
+  fecha: string | Date;
+  costo: number;
+  tecnico: string;
+  fechaRegistro: string | Date;
+};
+
 @Injectable()
-export class MotocicletasService implements OnModuleInit {
-  private readonly dataDir: string;
-  private readonly motosFile: string;
-  private readonly mantenimientosFile: string;
-
-  constructor() {
-    this.dataDir = path.join(process.cwd(), 'data');
-    this.motosFile = path.join(this.dataDir, 'motos.json');
-    this.mantenimientosFile = path.join(this.dataDir, 'mantenimientos.json');
-  }
-
-  async onModuleInit(): Promise<void> {
-    await this.ensureDataFiles();
-  }
-
-  private async ensureDataFiles(): Promise<void> {
-    await fs.mkdir(this.dataDir, { recursive: true });
-    for (const file of [this.motosFile, this.mantenimientosFile]) {
-      try {
-        await fs.access(file);
-      } catch {
-        await fs.writeFile(file, '[]', 'utf8');
-      }
-    }
-  }
-
-  private generateId(): string {
-    return `${Date.now()}-${Math.floor(Math.random() * 100000)}`;
-  }
+export class MotocicletasService {
+  constructor(private readonly mysqlService: MysqlService) {}
 
   private normalize(value: unknown): string {
     return String(value ?? '').trim();
   }
 
-  private async readMotos(): Promise<Moto[]> {
-    const raw = await fs.readFile(this.motosFile, 'utf8');
-    return JSON.parse(raw) as Moto[];
+  private toIso(value: string | Date): string {
+    const d = value instanceof Date ? value : new Date(value);
+    return d.toISOString();
   }
 
-  private async writeMotos(motos: Moto[]): Promise<void> {
-    await fs.writeFile(this.motosFile, JSON.stringify(motos, null, 2), 'utf8');
+  private mapMoto(row: MotoRow): Moto {
+    return {
+      id: row.id,
+      placa: row.placa,
+      marca: row.marca,
+      modelo: row.modelo,
+      anio: row.anio,
+      cilindraje: row.cilindraje,
+      estado: row.estado,
+      propietario: row.propietario,
+      fechaRegistro: this.toIso(row.fechaRegistro),
+    };
   }
 
-  private validateMoto(
+  private mapMantenimiento(row: MantenimientoRow): Mantenimiento {
+    return {
+      id: row.id,
+      moto_id: row.moto_id,
+      tipo: row.tipo,
+      descripcion: row.descripcion,
+      fecha:
+        typeof row.fecha === 'string'
+          ? row.fecha
+          : row.fecha.toISOString().slice(0, 10),
+      costo: Number(row.costo),
+      tecnico: row.tecnico,
+      fechaRegistro: this.toIso(row.fechaRegistro),
+    };
+  }
+
+  private async validateMoto(
     payload: Record<string, unknown>,
-    existingMotos: Moto[],
     currentId: string | null = null,
-  ): string[] {
+  ): Promise<string[]> {
     const errors: string[] = [];
     const required = [
       'placa',
@@ -82,21 +102,21 @@ export class MotocicletasService implements OnModuleInit {
     }
 
     const estadosPermitidos = ['activa', 'mantenimiento', 'inactiva'];
-    if (
-      payload.estado &&
-      !estadosPermitidos.includes(String(payload.estado).toLowerCase())
-    ) {
+    const estado = this.normalize(payload.estado).toLowerCase();
+    if (estado && !estadosPermitidos.includes(estado)) {
       errors.push('El estado debe ser activa, mantenimiento o inactiva.');
     }
 
     const placaInput = this.normalize(payload.placa).toUpperCase();
-    const placaDuplicada = existingMotos.some(
-      (m) =>
-        m.placa.toUpperCase() === placaInput && m.id !== currentId,
-    );
-
-    if (placaDuplicada) {
-      errors.push('La placa ya existe.');
+    if (placaInput) {
+      const pool = this.mysqlService.getPool();
+      const [duplicadas] = await pool.query<RowDataPacket[]>(
+        `SELECT id FROM motos WHERE UPPER(placa) = ? AND (? IS NULL OR id <> ?) LIMIT 1`,
+        [placaInput, currentId, currentId],
+      );
+      if (duplicadas.length > 0) {
+        errors.push('La placa ya existe.');
+      }
     }
 
     return errors;
@@ -104,23 +124,26 @@ export class MotocicletasService implements OnModuleInit {
 
   async findAllMotos(q?: string, estado?: string): Promise<Moto[]> {
     try {
-      let motos = await this.readMotos();
-
-      if (estado) {
-        motos = motos.filter((m) => m.estado === estado);
-      }
-
-      if (q) {
-        const term = String(q).toLowerCase();
-        motos = motos.filter((m) => {
-          return [m.placa, m.marca, m.modelo, m.propietario]
-            .join(' ')
-            .toLowerCase()
-            .includes(term);
-        });
-      }
-
-      return motos;
+      const pool = this.mysqlService.getPool();
+      const sql = `
+        SELECT
+          id, placa, marca, modelo, anio, cilindraje, estado, propietario,
+          fecha_registro AS fechaRegistro
+        FROM motos
+        WHERE (? = '' OR estado = ?)
+          AND (? = '' OR CONCAT(placa, ' ', marca, ' ', modelo, ' ', propietario) LIKE ?)
+        ORDER BY fecha_registro DESC
+      `;
+      const estadoParam = this.normalize(estado).toLowerCase();
+      const qParam = this.normalize(q);
+      const likeParam = `%${qParam}%`;
+      const [rows] = await pool.query<MotoRow[]>(sql, [
+        estadoParam,
+        estadoParam,
+        qParam,
+        likeParam,
+      ]);
+      return rows.map((r) => this.mapMoto(r));
     } catch {
       throw new InternalServerErrorException(
         'No se pudo obtener la lista de motos.',
@@ -130,12 +153,22 @@ export class MotocicletasService implements OnModuleInit {
 
   async findOneMoto(id: string): Promise<Moto> {
     try {
-      const motos = await this.readMotos();
-      const moto = motos.find((m) => m.id === id);
-      if (!moto) {
+      const pool = this.mysqlService.getPool();
+      const [rows] = await pool.query<MotoRow[]>(
+        `
+          SELECT
+            id, placa, marca, modelo, anio, cilindraje, estado, propietario,
+            fecha_registro AS fechaRegistro
+          FROM motos
+          WHERE id = ?
+          LIMIT 1
+        `,
+        [id],
+      );
+      if (!rows.length) {
         throw new NotFoundException('Motocicleta no encontrada.');
       }
-      return moto;
+      return this.mapMoto(rows[0]);
     } catch (e) {
       if (e instanceof NotFoundException) throw e;
       throw new InternalServerErrorException(
@@ -145,30 +178,45 @@ export class MotocicletasService implements OnModuleInit {
   }
 
   async createMoto(payload: Record<string, unknown>): Promise<Moto> {
+    const errors = await this.validateMoto(payload);
+    if (errors.length) {
+      throw new BadRequestException({ message: 'Validacion fallida.', errors });
+    }
+
     try {
-      const motos = await this.readMotos();
-      const errors = this.validateMoto(payload, motos);
-      if (errors.length) {
-        throw new BadRequestException({ message: 'Validacion fallida.', errors });
-      }
+      const pool = this.mysqlService.getPool();
+      const placa = this.normalize(payload.placa).toUpperCase();
+      const marca = this.normalize(payload.marca);
+      const modelo = this.normalize(payload.modelo);
+      const anio = Number(payload.anio);
+      const cilindraje = this.normalize(payload.cilindraje);
+      const estado = this.normalize(payload.estado).toLowerCase();
+      const propietario = this.normalize(payload.propietario);
 
-      const nuevaMoto: Moto = {
-        id: this.generateId(),
-        placa: this.normalize(payload.placa).toUpperCase(),
-        marca: this.normalize(payload.marca),
-        modelo: this.normalize(payload.modelo),
-        anio: Number(payload.anio),
-        cilindraje: this.normalize(payload.cilindraje),
-        estado: this.normalize(payload.estado).toLowerCase(),
-        propietario: this.normalize(payload.propietario),
-        fechaRegistro: new Date().toISOString(),
-      };
+      await pool.query<ResultSetHeader>(
+        `
+          INSERT INTO motos (
+            id, placa, marca, modelo, anio, cilindraje, estado, propietario
+          )
+          VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?)
+        `,
+        [placa, marca, modelo, anio, cilindraje, estado, propietario],
+      );
 
-      motos.push(nuevaMoto);
-      await this.writeMotos(motos);
-      return nuevaMoto;
-    } catch (e) {
-      if (e instanceof BadRequestException) throw e;
+      const [rows] = await pool.query<MotoRow[]>(
+        `
+          SELECT
+            id, placa, marca, modelo, anio, cilindraje, estado, propietario,
+            fecha_registro AS fechaRegistro
+          FROM motos
+          WHERE placa = ?
+          ORDER BY fecha_registro DESC
+          LIMIT 1
+        `,
+        [placa],
+      );
+      return this.mapMoto(rows[0]);
+    } catch {
       throw new InternalServerErrorException(
         'No se pudo crear la motocicleta.',
       );
@@ -176,35 +224,45 @@ export class MotocicletasService implements OnModuleInit {
   }
 
   async updateMoto(id: string, payload: Record<string, unknown>): Promise<Moto> {
+    const errors = await this.validateMoto(payload, id);
+    if (errors.length) {
+      throw new BadRequestException({ message: 'Validacion fallida.', errors });
+    }
+
     try {
-      const motos = await this.readMotos();
-      const index = motos.findIndex((m) => m.id === id);
-      if (index === -1) {
+      const pool = this.mysqlService.getPool();
+      const [existe] = await pool.query<RowDataPacket[]>(
+        'SELECT id FROM motos WHERE id = ? LIMIT 1',
+        [id],
+      );
+      if (!existe.length) {
         throw new NotFoundException('Motocicleta no encontrada.');
       }
 
-      const errors = this.validateMoto(payload, motos, id);
-      if (errors.length) {
-        throw new BadRequestException({ message: 'Validacion fallida.', errors });
-      }
+      await pool.query<ResultSetHeader>(
+        `
+          UPDATE motos
+          SET placa = ?, marca = ?, modelo = ?, anio = ?, cilindraje = ?,
+              estado = ?, propietario = ?
+          WHERE id = ?
+        `,
+        [
+          this.normalize(payload.placa).toUpperCase(),
+          this.normalize(payload.marca),
+          this.normalize(payload.modelo),
+          Number(payload.anio),
+          this.normalize(payload.cilindraje),
+          this.normalize(payload.estado).toLowerCase(),
+          this.normalize(payload.propietario),
+          id,
+        ],
+      );
 
-      const updated: Moto = {
-        ...motos[index],
-        placa: this.normalize(payload.placa).toUpperCase(),
-        marca: this.normalize(payload.marca),
-        modelo: this.normalize(payload.modelo),
-        anio: Number(payload.anio),
-        cilindraje: this.normalize(payload.cilindraje),
-        estado: this.normalize(payload.estado).toLowerCase(),
-        propietario: this.normalize(payload.propietario),
-      };
-
-      motos[index] = updated;
-      await this.writeMotos(motos);
-      return updated;
+      return this.findOneMoto(id);
     } catch (e) {
-      if (e instanceof BadRequestException || e instanceof NotFoundException)
+      if (e instanceof BadRequestException || e instanceof NotFoundException) {
         throw e;
+      }
       throw new InternalServerErrorException(
         'No se pudo actualizar la motocicleta.',
       );
@@ -213,13 +271,14 @@ export class MotocicletasService implements OnModuleInit {
 
   async deleteMoto(id: string): Promise<void> {
     try {
-      const motos = await this.readMotos();
-      const index = motos.findIndex((m) => m.id === id);
-      if (index === -1) {
+      const pool = this.mysqlService.getPool();
+      const [result] = await pool.query<ResultSetHeader>(
+        'DELETE FROM motos WHERE id = ?',
+        [id],
+      );
+      if (!result.affectedRows) {
         throw new NotFoundException('Motocicleta no encontrada.');
       }
-      motos.splice(index, 1);
-      await this.writeMotos(motos);
     } catch (e) {
       if (e instanceof NotFoundException) throw e;
       throw new InternalServerErrorException(
@@ -230,8 +289,17 @@ export class MotocicletasService implements OnModuleInit {
 
   async findAllMantenimientos(): Promise<Mantenimiento[]> {
     try {
-      const raw = await fs.readFile(this.mantenimientosFile, 'utf8');
-      return JSON.parse(raw) as Mantenimiento[];
+      const pool = this.mysqlService.getPool();
+      const [rows] = await pool.query<MantenimientoRow[]>(
+        `
+          SELECT
+            id, moto_id, tipo, descripcion, fecha, costo, tecnico,
+            fecha_registro AS fechaRegistro
+          FROM mantenimientos
+          ORDER BY fecha DESC, fecha_registro DESC
+        `,
+      );
+      return rows.map((r) => this.mapMantenimiento(r));
     } catch {
       throw new InternalServerErrorException(
         'No se pudo obtener la lista de mantenimientos.',
@@ -239,31 +307,28 @@ export class MotocicletasService implements OnModuleInit {
     }
   }
 
-  private async writeMantenimientos(items: Mantenimiento[]): Promise<void> {
-    await fs.writeFile(
-      this.mantenimientosFile,
-      JSON.stringify(items, null, 2),
-      'utf8',
-    );
-  }
-
   async createMantenimiento(
     payload: Record<string, unknown>,
   ): Promise<Mantenimiento> {
     const errors: string[] = [];
 
-    const required = ['moto_id', 'tipo', 'descripcion', 'fecha', 'tecnico'];
+    const required = [
+      'moto_id',
+      'tipo',
+      'descripcion',
+      'fecha',
+      'tecnico',
+      'costo',
+    ];
     for (const field of required) {
-      if (!String(payload[field] ?? '').trim()) {
+      if (!this.normalize(payload[field])) {
         errors.push(`El campo '${field}' es obligatorio.`);
       }
     }
 
     const tiposPermitidos = ['preventivo', 'correctivo', 'revision'];
-    if (
-      payload.tipo &&
-      !tiposPermitidos.includes(String(payload.tipo))
-    ) {
+    const tipo = this.normalize(payload.tipo).toLowerCase();
+    if (tipo && !tiposPermitidos.includes(tipo)) {
       errors.push('El tipo debe ser preventivo, correctivo o revision.');
     }
 
@@ -278,46 +343,60 @@ export class MotocicletasService implements OnModuleInit {
       }
     }
 
-    const costoRaw = payload.costo;
-    if (costoRaw === undefined || costoRaw === null || costoRaw === '') {
-      errors.push("El campo 'costo' es obligatorio.");
-    } else {
-      const costo = Number(costoRaw);
-      if (isNaN(costo) || costo < 0) {
-        errors.push('El costo debe ser un numero igual o mayor a 0.');
-      }
+    const costo = Number(payload.costo);
+    if (isNaN(costo) || costo < 0) {
+      errors.push('El costo debe ser un numero igual o mayor a 0.');
     }
 
     if (errors.length) {
       throw new BadRequestException({ message: 'Validacion fallida.', errors });
     }
 
-    const motos = await this.readMotos();
-    const motoExiste = motos.some((m) => m.id === payload.moto_id);
-    if (!motoExiste) {
-      throw new BadRequestException({
-        message: 'La motocicleta seleccionada no existe.',
-        errors: ['moto_id invalido.'],
-      });
-    }
-
-    const mantenimientos = await this.findAllMantenimientos();
-    const nuevo: Mantenimiento = {
-      id: this.generateId(),
-      moto_id: String(payload.moto_id),
-      tipo: String(payload.tipo),
-      descripcion: String(payload.descripcion).trim(),
-      fecha: String(payload.fecha),
-      costo: Number(payload.costo),
-      tecnico: String(payload.tecnico).trim(),
-      fechaRegistro: new Date().toISOString(),
-    };
-
     try {
-      mantenimientos.push(nuevo);
-      await this.writeMantenimientos(mantenimientos);
-      return nuevo;
-    } catch {
+      const pool = this.mysqlService.getPool();
+      const motoId = this.normalize(payload.moto_id);
+      const [motoRows] = await pool.query<RowDataPacket[]>(
+        'SELECT id FROM motos WHERE id = ? LIMIT 1',
+        [motoId],
+      );
+      if (!motoRows.length) {
+        throw new BadRequestException({
+          message: 'La motocicleta seleccionada no existe.',
+          errors: ['moto_id invalido.'],
+        });
+      }
+
+      await pool.query<ResultSetHeader>(
+        `
+          INSERT INTO mantenimientos (
+            id, moto_id, tipo, descripcion, fecha, costo, tecnico
+          ) VALUES (UUID(), ?, ?, ?, ?, ?, ?)
+        `,
+        [
+          motoId,
+          tipo,
+          this.normalize(payload.descripcion),
+          String(payload.fecha),
+          costo,
+          this.normalize(payload.tecnico),
+        ],
+      );
+
+      const [rows] = await pool.query<MantenimientoRow[]>(
+        `
+          SELECT
+            id, moto_id, tipo, descripcion, fecha, costo, tecnico,
+            fecha_registro AS fechaRegistro
+          FROM mantenimientos
+          WHERE moto_id = ?
+          ORDER BY fecha_registro DESC
+          LIMIT 1
+        `,
+        [motoId],
+      );
+      return this.mapMantenimiento(rows[0]);
+    } catch (e) {
+      if (e instanceof BadRequestException) throw e;
       throw new InternalServerErrorException(
         'No se pudo registrar el mantenimiento.',
       );

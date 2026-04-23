@@ -4,6 +4,7 @@ import {
   inject,
   OnInit,
   PLATFORM_ID,
+  ChangeDetectorRef,
 } from '@angular/core';
 import {
   FormBuilder,
@@ -31,6 +32,7 @@ export class MiMotoPageComponent implements OnInit {
   private readonly api = inject(MotocicletasApiService);
   private readonly fb = inject(FormBuilder);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   readonly maxYear = new Date().getFullYear() + 1;
 
@@ -69,22 +71,14 @@ export class MiMotoPageComponent implements OnInit {
       next: (data) => {
         this.motos = data;
         this.loading = false;
+        this.cdr.detectChanges();
       },
       error: (e: Error) => {
         this.notify('danger', e.message);
         this.loading = false;
+        this.cdr.detectChanges();
       },
     });
-  }
-
-  get primary(): Moto | undefined {
-    return this.motos[0];
-  }
-
-  get btnPrimaryLabel(): string {
-    return this.motos.length
-      ? 'Editar mi moto'
-      : 'Registrar mi moto';
   }
 
   openModalNew(): void {
@@ -117,22 +111,12 @@ export class MiMotoPageComponent implements OnInit {
     this.modalOpen = true;
   }
 
-  headerButtonClick(): void {
-    if (this.motos.length && this.primary) {
-      this.openModalEdit(this.primary);
-    } else {
-      this.openModalNew();
-    }
+  editMotoClick(moto: Moto): void {
+    this.openModalEdit(moto);
   }
 
-  editPrimaryClick(): void {
-    const m = this.primary;
-    if (m) this.openModalEdit(m);
-  }
-
-  deletePrimaryClick(): void {
-    const m = this.primary;
-    if (m) this.deleteMoto(m.id);
+  deleteMotoClick(id: string): void {
+    this.deleteMoto(id);
   }
 
   closeModal(): void {
@@ -154,7 +138,7 @@ export class MiMotoPageComponent implements OnInit {
       estado: v.estado,
       propietario: v.propietario.trim(),
     };
-    const targetId = v.id || this.primary?.id;
+    const targetId = v.id;
 
     if (targetId) {
       this.api.updateMoto(targetId, payload).subscribe({

@@ -1,27 +1,31 @@
-import { isPlatformBrowser } from '@angular/common';
-import { Component, inject, OnInit, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser, CurrencyPipe, DatePipe } from '@angular/common';
+import { Component, inject, OnInit, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import {
   FormBuilder,
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { forkJoin } from 'rxjs';
 import { SectionHeroComponent } from '../../components/section-hero/section-hero';
+import { Mantenimiento } from '../../models/mantenimiento.model';
 import { Moto } from '../../models/moto.model';
 import { MotocicletasApiService } from '../../services/motocicletas-api.service';
 
 @Component({
   selector: 'app-mantenimiento',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule, SectionHeroComponent],
+  imports: [RouterLink, ReactiveFormsModule, SectionHeroComponent, CurrencyPipe, DatePipe],
   templateUrl: './mantenimiento.html',
 })
 export class MantenimientoPageComponent implements OnInit {
   private readonly api = inject(MotocicletasApiService);
   private readonly fb = inject(FormBuilder);
   private readonly platformId = inject(PLATFORM_ID);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   motos: Moto[] = [];
+  mantenimientos: Mantenimiento[] = [];
   loadingMotos = true;
   alertText = '';
   alertType: 'success' | 'danger' | 'warning' | '' = '';
@@ -53,24 +57,30 @@ export class MantenimientoPageComponent implements OnInit {
 
   loadMotos(): void {
     this.loadingMotos = true;
-    this.api.listMotos().subscribe({
-      next: (list) => {
-        this.motos = list;
+    forkJoin({
+      motos: this.api.listMotos(),
+      mantenimientos: this.api.listMantenimientos(),
+    }).subscribe({
+      next: ({ motos, mantenimientos }) => {
+        this.motos = motos;
+        this.mantenimientos = mantenimientos;
         const motoCtrl = this.form.controls.moto_id;
-        if (!list.length) {
+        if (!motos.length) {
           motoCtrl.disable();
           motoCtrl.setValue('');
         } else {
           motoCtrl.enable();
-          if (list.length === 1) {
-            motoCtrl.setValue(list[0].id);
+          if (motos.length === 1) {
+            motoCtrl.setValue(motos[0].id);
           }
         }
         this.loadingMotos = false;
+        this.cdr.detectChanges();
       },
       error: () => {
         this.notify('warning', 'No se pudo cargar la lista de motocicletas.');
         this.loadingMotos = false;
+        this.cdr.detectChanges();
       },
     });
   }
@@ -113,6 +123,7 @@ export class MantenimientoPageComponent implements OnInit {
             costo: 0,
             tecnico: '',
           });
+          this.loadMotos();
         },
         error: (e: Error) => this.notify('danger', e.message),
       });
@@ -127,6 +138,10 @@ export class MantenimientoPageComponent implements OnInit {
       costo: 0,
       tecnico: '',
     });
+  }
+
+  getMotoPlaca(id: string): string | undefined {
+    return this.motos.find((m) => m.id === id)?.placa;
   }
 
   private notify(

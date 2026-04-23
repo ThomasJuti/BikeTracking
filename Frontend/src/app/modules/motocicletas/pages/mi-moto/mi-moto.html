@@ -1,4 +1,4 @@
-<app-section-hero eyebrow="BikeTracking" title="Mi motocicleta" subtitle="">
+<app-section-hero eyebrow="BikeTracking" title="Mis vehiculos" subtitle="">
   <div
     class="d-flex flex-column flex-md-row justify-content-md-end gap-2 mt-3 mt-md-0"
   >
@@ -9,10 +9,10 @@
     <button
       type="button"
       class="btn btn-primary btn-lg"
-      (click)="headerButtonClick()"
+      (click)="openModalNew()"
     >
       <i class="bi bi-plus-lg"></i>
-      {{ btnPrimaryLabel }}
+      Registrar vehiculo
     </button>
   </div>
 </app-section-hero>
@@ -24,37 +24,9 @@
     <div class="col-12 col-md-4">
       <article class="card h-100">
         <div class="card-body">
-          <p class="text-muted mb-1">Mi placa</p>
+          <p class="text-muted mb-1">Total vehiculos</p>
           <p class="display-6 fw-bold text-primary mb-0">
-            {{ primary?.placa ?? "Sin registro" }}
-          </p>
-        </div>
-      </article>
-    </div>
-    <div class="col-12 col-md-4">
-      <article class="card h-100">
-        <div class="card-body">
-          <p class="text-muted mb-1">Estado actual</p>
-          <p
-            class="display-6 fw-bold mb-0"
-            [class.text-success]="primary?.estado !== 'mantenimiento'"
-            [class.text-warning]="primary?.estado === 'mantenimiento'"
-          >
-            {{ primary?.estado ?? "pendiente" }}
-          </p>
-        </div>
-      </article>
-    </div>
-    <div class="col-12 col-md-4">
-      <article class="card h-100">
-        <div class="card-body">
-          <p class="text-muted mb-1">Marca y modelo</p>
-          <p class="display-6 fw-bold text-info mb-0 fs-3">
-            @if (primary) {
-              {{ primary!.marca }} {{ primary!.modelo }}
-            } @else {
-              Completa tu ficha
-            }
+            {{ motos.length }}
           </p>
         </div>
       </article>
@@ -78,14 +50,14 @@
         {{ alertText }}
       </div>
 
-      @if (!primary) {
+      @if (!motos.length) {
         <article
           class="empty-profile rounded-4 p-4 p-md-5 text-center"
         >
           <div class="empty-profile-icon mx-auto mb-3">
             <i class="bi bi-bicycle fs-2"></i>
           </div>
-          <h2 class="fs-4 fw-bold mb-2">Todavia no has registrado tu moto</h2>
+          <h2 class="fs-4 fw-bold mb-2">Todavia no has registrado vehiculos</h2>
           <p class="text-muted mb-4">
             Crea la ficha de tu vehiculo personal para llevar control de su estado
             y mantenimiento.
@@ -96,73 +68,75 @@
             (click)="openModalNew()"
           >
             <i class="bi bi-plus-lg"></i>
-            Registrar mi moto
+            Registrar vehiculo
           </button>
         </article>
       } @else {
-        <article class="vehicle-profile-card rounded-4 p-4 p-md-5">
-          <div
-            class="d-flex flex-column flex-lg-row justify-content-between gap-4"
-          >
-            <div>
-              <p class="text-uppercase tracking fw-semibold mb-2">Mi vehiculo</p>
-              <h2 class="fs-3 fw-bold mb-1">
-                {{ primary!.marca }} {{ primary!.modelo }}
-              </h2>
-              <p class="text-muted mb-0">
-                Placa {{ primary!.placa }} · {{ primary!.cilindraje }}
-              </p>
-            </div>
-            <div class="d-flex flex-wrap gap-2 align-items-start">
-              <app-moto-status-badge [estado]="primary!.estado" />
-              <button
-                class="btn btn-outline-primary"
-                type="button"
-                (click)="editPrimaryClick()"
-              >
-                <i class="bi bi-pencil-square"></i>
-                Editar datos
-              </button>
-              <button
-                class="btn btn-outline-danger"
-                type="button"
-                (click)="deletePrimaryClick()"
-              >
-                <i class="bi bi-trash3"></i>
-                Eliminar
-              </button>
-            </div>
-          </div>
-
-          <div class="row g-3 mt-1">
-            <div class="col-12 col-md-6 col-xl-3">
-              <div class="profile-detail h-100">
-                <p class="profile-label mb-1">Propietario</p>
-                <p class="profile-value mb-0">{{ primary!.propietario }}</p>
-              </div>
-            </div>
-            <div class="col-12 col-md-6 col-xl-3">
-              <div class="profile-detail h-100">
-                <p class="profile-label mb-1">Anio</p>
-                <p class="profile-value mb-0">{{ primary!.anio }}</p>
-              </div>
-            </div>
-            <div class="col-12 col-md-6 col-xl-3">
-              <div class="profile-detail h-100">
-                <p class="profile-label mb-1">Estado</p>
-                <p class="profile-value mb-0 text-capitalize">
-                  {{ primary!.estado }}
+        @for (m of motos; track m.id) {
+          <article class="vehicle-profile-card rounded-4 p-4 p-md-5 mb-4 border bg-light">
+            <div
+              class="d-flex flex-column flex-lg-row justify-content-between gap-4"
+            >
+              <div>
+                <p class="text-uppercase tracking fw-semibold mb-2">Vehiculo</p>
+                <h2 class="fs-3 fw-bold mb-1">
+                  {{ m.marca }} {{ m.modelo }}
+                </h2>
+                <p class="text-muted mb-0">
+                  Placa {{ m.placa }} · {{ m.cilindraje }}
                 </p>
               </div>
-            </div>
-            <div class="col-12 col-md-6 col-xl-3">
-              <div class="profile-detail h-100">
-                <p class="profile-label mb-1">Cilindraje</p>
-                <p class="profile-value mb-0">{{ primary!.cilindraje }}</p>
+              <div class="d-flex flex-wrap gap-2 align-items-start">
+                <app-moto-status-badge [estado]="m.estado" />
+                <button
+                  class="btn btn-outline-primary"
+                  type="button"
+                  (click)="editMotoClick(m)"
+                >
+                  <i class="bi bi-pencil-square"></i>
+                  Editar datos
+                </button>
+                <button
+                  class="btn btn-outline-danger"
+                  type="button"
+                  (click)="deleteMotoClick(m.id)"
+                >
+                  <i class="bi bi-trash3"></i>
+                  Eliminar
+                </button>
               </div>
             </div>
-          </div>
-        </article>
+
+            <div class="row g-3 mt-1">
+              <div class="col-12 col-md-6 col-xl-3">
+                <div class="profile-detail h-100">
+                  <p class="profile-label mb-1">Propietario</p>
+                  <p class="profile-value mb-0">{{ m.propietario }}</p>
+                </div>
+              </div>
+              <div class="col-12 col-md-6 col-xl-3">
+                <div class="profile-detail h-100">
+                  <p class="profile-label mb-1">Anio</p>
+                  <p class="profile-value mb-0">{{ m.anio }}</p>
+                </div>
+              </div>
+              <div class="col-12 col-md-6 col-xl-3">
+                <div class="profile-detail h-100">
+                  <p class="profile-label mb-1">Estado</p>
+                  <p class="profile-value mb-0 text-capitalize">
+                    {{ m.estado }}
+                  </p>
+                </div>
+              </div>
+              <div class="col-12 col-md-6 col-xl-3">
+                <div class="profile-detail h-100">
+                  <p class="profile-label mb-1">Cilindraje</p>
+                  <p class="profile-value mb-0">{{ m.cilindraje }}</p>
+                </div>
+              </div>
+            </div>
+          </article>
+        }
       }
     </div>
   </section>
