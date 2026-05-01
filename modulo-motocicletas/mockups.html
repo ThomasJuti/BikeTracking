@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BikeTracking — Mockups de Interfaz</title>
+  <style>
+    /* ── Reset & base ───────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f0f2f5;
+      color: #1a1a2e;
+      min-height: 100vh;
+    }
+
+    /* ── Cover ──────────────────────────────────────────────── */
+    .cover {
+      background: linear-gradient(135deg, #0d1b2a 0%, #1a3a5c 60%, #0a4a6e 100%);
+      color: #fff;
+      text-align: center;
+      padding: 80px 20px 60px;
+    }
+    .cover-badge {
+      display: inline-block;
+      background: rgba(59,158,255,0.18);
+      border: 1px solid rgba(59,158,255,0.4);
+      color: #7ec8ff;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      padding: 6px 18px;
+      border-radius: 999px;
+      margin-bottom: 24px;
+    }
+    .cover h1 { font-size: 2.8rem; font-weight: 800; margin-bottom: 12px; }
+    .cover p  { font-size: 1.05rem; color: #8bb8d8; max-width: 560px; margin: 0 auto 36px; }
+    .cover-grid {
+      display: flex; justify-content: center; gap: 20px; flex-wrap: wrap;
+    }
+    .cover-pill {
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.15);
+      border-radius: 12px;
+      padding: 14px 28px;
+      font-weight: 600;
+      font-size: 0.92rem;
+    }
+    .cover-pill span { display: block; font-size: 1.4rem; margin-bottom: 4px; }
+
+    /* ── Section headers ────────────────────────────────────── */
+    .section-header {
+      text-align: center;
+      padding: 56px 20px 32px;
+    }
+    .section-header .tag {
+      display: inline-block;
+      background: #e8f0fe;
+      color: #1a56db;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      padding: 5px 16px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+    .section-header h2 { font-size: 1.9rem; font-weight: 800; color: #0d1b2a; margin-bottom: 6px; }
+    .section-header p  { color: #6b7a8d; font-size: 0.95rem; }
+
+    /* ── Fidelity row ───────────────────────────────────────── */
+    .fidelity-row {
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+      padding: 0 32px 56px;
+    }
+
+    /* ── Card wrapper ───────────────────────────────────────── */
+    .mockup-card {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.09);
+      width: 340px;
+      flex-shrink: 0;
+    }
+    .mockup-label {
+      padding: 12px 18px 10px;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .mockup-label .dot {
+      width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0;
+    }
+    .lbl-low    { background: #f5f5f5; color: #777; }
+    .lbl-mid    { background: #eef3fb; color: #3b82c4; }
+    .lbl-high   { background: #0d1b2a; color: #7ec8ff; }
+    .dot-low    { background: #bbb; }
+    .dot-mid    { background: #3b9eff; }
+    .dot-high   { background: #00c4b0; }
+    .mockup-frame {
+      border-top: 1px solid #eee;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       ── LOW FIDELITY  (grayscale wireframe blocks) ──────────
+    ══════════════════════════════════════════════════════════ */
+    .lf {
+      background: #fafafa;
+      padding: 20px;
+      font-family: monospace;
+      min-height: 380px;
+    }
+    .lf-title {
+      font-size: 0.65rem;
+      font-weight: 700;
+      color: #999;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+    .lf-block {
+      background: #e0e0e0;
+      border-radius: 4px;
+      margin-bottom: 8px;
+    }
+    .lf-circle {
+      background: #d0d0d0;
+      border-radius: 50%;
+    }
+    .lf-btn {
+      background: #bbb;
+      border-radius: 6px;
+      height: 32px;
+    }
+    .lf-btn-outline {
+      background: transparent;
+      border: 2px solid #bbb;
+      border-radius: 6px;
+      height: 32px;
+    }
+    .lf-input {
+      background: #fff;
+      border: 1.5px solid #d0d0d0;
+      border-radius: 5px;
+      height: 34px;
+      margin-bottom: 10px;
+    }
+    .lf-nav {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+    .lf-nav-item {
+      flex: 1;
+      background: #e0e0e0;
+      border-radius: 6px;
+      height: 28px;
+    }
+    .lf-nav-item.active { background: #bbb; }
+    .lf-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .lf-row > * { flex: 1; }
+    .lf-card {
+      background: #fff;
+      border: 1.5px solid #e0e0e0;
+      border-radius: 8px;
+      padding: 10px;
+      margin-bottom: 10px;
+    }
+    .lf-line { height: 10px; background: #e0e0e0; border-radius: 3px; margin-bottom: 6px; }
+    .lf-line.short { width: 55%; }
+    .lf-line.xshort { width: 35%; }
+    .lf-divider { border: none; border-top: 1.5px dashed #d0d0d0; margin: 12px 0; }
+    .lf-icon {
+      width: 40px; height: 40px;
+      background: #d5d5d5;
+      border-radius: 8px;
+      margin-bottom: 6px;
+    }
+
+    /* ══════════════════════════════════════════════════════════
+       ── MID FIDELITY  (structure + color + labels) ──────────
+    ══════════════════════════════════════════════════════════ */
+    .mf {
+      background: #f4f7fb;
+      padding: 20px;
+      min-height: 380px;
+      font-size: 0.82rem;
+    }
+    .mf-brand {
+      text-align: center;
+      margin-bottom: 14px;
+    }
+    .mf-brand-icon {
+      width: 52px; height: 52px;
+      background: rgba(59,158,255,0.15);
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 6px;
+      font-size: 1.5rem;
+    }
+    .mf-brand-name { font-size: 0.65rem; font-weight: 700; letter-spacing: 0.12em; color: #3b9eff; text-transform: uppercase; }
+    .mf-title { font-size: 1.05rem; font-weight: 800; color: #0d1b2a; }
+    .mf-sub   { font-size: 0.72rem; color: #7a8fa6; }
+    .mf-tabs  { display: flex; gap: 6px; margin: 12px 0 14px; background: #e8edf3; border-radius: 8px; padding: 4px; }
+    .mf-tab   { flex: 1; text-align: center; padding: 6px 0; border-radius: 6px; font-size: 0.75rem; font-weight: 600; color: #7a8fa6; cursor: default; }
+    .mf-tab.active { background: #fff; color: #1a56db; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+    .mf-label { font-size: 0.72rem; font-weight: 700; color: #4a5a6a; margin-bottom: 4px; }
+    .mf-input {
+      width: 100%; background: #fff; border: 1.5px solid #c8d6e4;
+      border-radius: 7px; height: 34px; margin-bottom: 10px;
+      padding: 0 10px; font-size: 0.78rem; color: #4a5a6a;
+      display: flex; align-items: center;
+    }
+    .mf-input .icon { color: #9ab; margin-right: 6px; font-style: normal; }
+    .mf-btn-primary {
+      width: 100%; background: #1a56db; color: #fff;
+      border: none; border-radius: 8px; padding: 9px;
+      font-size: 0.8rem; font-weight: 700; text-align: center;
+    }
+    .mf-btn-secondary {
+      background: #fff; color: #4a5a6a;
+      border: 1.5px solid #c8d6e4; border-radius: 8px; padding: 7px 14px;
+      font-size: 0.78rem; font-weight: 600;
+    }
+    .mf-btn-danger {
+      background: #fff; color: #c0392b;
+      border: 1.5px solid #e8a0a0; border-radius: 8px; padding: 7px 14px;
+      font-size: 0.78rem; font-weight: 600;
+    }
+    .mf-card {
+      background: #fff; border: 1px solid #dde8f0;
+      border-radius: 10px; padding: 12px; margin-bottom: 10px;
+    }
+    .mf-card-title { font-weight: 700; color: #0d1b2a; font-size: 0.85rem; }
+    .mf-card-sub   { color: #7a8fa6; font-size: 0.72rem; margin-top: 2px; }
+    .mf-hero {
+      background: linear-gradient(135deg, #fff, #f4f9ff);
+      border: 1px solid #dde8f0;
+      border-radius: 10px;
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+    .mf-stat-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .mf-stat {
+      flex: 1; background: #fff; border: 1px solid #dde8f0;
+      border-radius: 8px; padding: 10px; text-align: center;
+    }
+    .mf-stat-val { font-size: 1.1rem; font-weight: 800; color: #1a56db; }
+    .mf-stat-lbl { font-size: 0.65rem; color: #7a8fa6; margin-top: 2px; }
+    .mf-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .mf-row > * { flex: 1; }
+    .mf-access {
+      display: flex; gap: 10px; align-items: flex-start;
+      background: #fff; border: 1px solid #dde8f0;
+      border-radius: 10px; padding: 12px; margin-bottom: 8px;
+      text-decoration: none;
+    }
+    .mf-access-icon {
+      width: 40px; height: 40px; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.2rem; flex-shrink: 0;
+    }
+    .mf-access-text h4 { font-size: 0.82rem; font-weight: 700; color: #0d1b2a; margin-bottom: 2px; }
+    .mf-access-text p  { font-size: 0.7rem; color: #7a8fa6; }
+    .mf-badge {
+      display: inline-block; padding: 3px 10px; border-radius: 999px;
+      font-size: 0.68rem; font-weight: 700;
+    }
+    .mf-badge-success { background: #d4f6ee; color: #0a7c5a; }
+    .mf-badge-warn    { background: #fff0cc; color: #9a6500; }
+    .mf-badge-info    { background: #ddeeff; color: #1155aa; }
+    .mf-detail-grid   { display: flex; flex-wrap: wrap; gap: 8px; }
+    .mf-detail-item   {
+      flex: 1 1 calc(50% - 4px);
+      background: #f8fafd; border: 1px solid #e0e8f0;
+      border-radius: 8px; padding: 8px 10px;
+    }
+    .mf-detail-label { font-size: 0.65rem; color: #7a8fa6; margin-bottom: 2px; }
+    .mf-detail-val   { font-size: 0.8rem; font-weight: 700; color: #0d1b2a; }
+    .mf-divider { border: none; border-top: 1px solid #e0e8f0; margin: 10px 0; }
+    .mf-field-row { display: flex; gap: 6px; }
+    .mf-field-row > * { flex: 1; }
+    .mf-header-flex { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .mf-btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
+
+    /* ══════════════════════════════════════════════════════════
+       ── HIGH FIDELITY  (pixel-close dark theme) ─────────────
+    ══════════════════════════════════════════════════════════ */
+    .hf {
+      background: #0d1b2a;
+      padding: 20px;
+      min-height: 380px;
+      font-size: 0.82rem;
+      color: #dce8f5;
+      position: relative;
+    }
+    /* blobs */
+    .hf::before, .hf::after {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      filter: blur(40px);
+      pointer-events: none;
+    }
+    .hf::before {
+      width: 160px; height: 160px;
+      background: rgba(59,158,255,0.2);
+      top: -40px; left: -40px;
+    }
+    .hf::after {
+      width: 180px; height: 180px;
+      background: rgba(0,196,176,0.18);
+      bottom: -50px; right: -50px;
+    }
+    .hf > * { position: relative; z-index: 1; }
+
+    .hf-brand { text-align: center; margin-bottom: 14px; }
+    .hf-brand-icon {
+      width: 54px; height: 54px; border-radius: 50%;
+      background: rgba(59,158,255,0.18);
+      border: 1px solid rgba(59,158,255,0.3);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 6px; font-size: 1.6rem;
+    }
+    .hf-brand-name { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.14em; color: #3b9eff; text-transform: uppercase; }
+    .hf-title { font-size: 1.1rem; font-weight: 800; color: #dce8f5; }
+    .hf-sub   { font-size: 0.7rem; color: #7a9bb8; }
+
+    .hf-tabs { display: flex; gap: 5px; margin: 12px 0 14px; background: #122236; border-radius: 9px; padding: 4px; }
+    .hf-tab  { flex: 1; text-align: center; padding: 7px 0; border-radius: 7px; font-size: 0.73rem; font-weight: 600; color: #7a9bb8; }
+    .hf-tab.active { background: #3b9eff; color: #fff; box-shadow: 0 2px 8px rgba(59,158,255,0.35); }
+
+    .hf-label { font-size: 0.7rem; font-weight: 600; color: #7a9bb8; margin-bottom: 4px; }
+    .hf-input {
+      width: 100%; background: #122236; border: 1.5px solid #1f3655;
+      border-radius: 8px; height: 36px; padding: 0 10px;
+      font-size: 0.78rem; color: #dce8f5;
+      display: flex; align-items: center; margin-bottom: 10px;
+    }
+    .hf-input .hf-icon { color: #7a9bb8; margin-right: 6px; font-style: normal; }
+    .hf-input .hf-ph   { color: #3d5a72; }
+    .hf-btn-primary {
+      width: 100%; background: linear-gradient(135deg, #3b9eff, #1a72d9);
+      color: #fff; border: none; border-radius: 9px; padding: 10px;
+      font-size: 0.8rem; font-weight: 700; text-align: center;
+      box-shadow: 0 4px 14px rgba(59,158,255,0.35);
+    }
+    .hf-btn-outline {
+      background: transparent; color: #7a9bb8;
+      border: 1.5px solid #1f3655; border-radius: 8px; padding: 7px 12px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .hf-btn-danger {
+      background: transparent; color: #f87171;
+      border: 1.5px solid rgba(248,113,113,0.35); border-radius: 8px; padding: 7px 12px;
+      font-size: 0.75rem; font-weight: 600;
+    }
+    .hf-card {
+      background: #122236; border: 1px solid #1f3655;
+      border-radius: 12px; padding: 14px; margin-bottom: 10px;
+    }
+    .hf-card-title { font-weight: 700; color: #dce8f5; font-size: 0.88rem; }
+    .hf-card-sub   { color: #7a9bb8; font-size: 0.7rem; margin-top: 2px; }
+    .hf-hero {
+      background: linear-gradient(135deg, #122236, #1a2f47);
+      border: 1px solid #1f3655;
+      border-radius: 12px; padding: 16px; margin-bottom: 12px;
+    }
+    .hf-stat-row { display: flex; gap: 8px; margin-bottom: 12px; }
+    .hf-stat {
+      flex: 1; background: #122236; border: 1px solid #1f3655;
+      border-radius: 10px; padding: 10px; text-align: center;
+    }
+    .hf-stat-val { font-size: 1.15rem; font-weight: 800; color: #3b9eff; }
+    .hf-stat-lbl { font-size: 0.62rem; color: #7a9bb8; margin-top: 2px; }
+    .hf-tracking { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; color: #3b9eff; text-transform: uppercase; margin-bottom: 4px; }
+    .hf-display  { font-size: 1.15rem; font-weight: 800; color: #dce8f5; margin-bottom: 4px; }
+    .hf-muted    { font-size: 0.7rem; color: #7a9bb8; }
+    .hf-access {
+      display: flex; gap: 10px; align-items: flex-start;
+      background: #1a2f47; border: 1px solid #1f3655;
+      border-radius: 12px; padding: 12px; margin-bottom: 8px;
+    }
+    .hf-access-icon {
+      width: 42px; height: 42px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.25rem; flex-shrink: 0;
+    }
+    .hf-access-text h4 { font-size: 0.82rem; font-weight: 700; color: #dce8f5; margin-bottom: 2px; }
+    .hf-access-text p  { font-size: 0.68rem; color: #7a9bb8; }
+    .hf-badge {
+      display: inline-block; padding: 3px 10px; border-radius: 999px;
+      font-size: 0.67rem; font-weight: 700;
+    }
+    .hf-badge-success { background: rgba(0,196,176,0.15); color: #00c4b0; border: 1px solid rgba(0,196,176,0.25); }
+    .hf-badge-warn    { background: rgba(251,191,36,0.12); color: #f5c242; border: 1px solid rgba(251,191,36,0.25); }
+    .hf-badge-info    { background: rgba(59,158,255,0.12); color: #3b9eff; border: 1px solid rgba(59,158,255,0.22); }
+    .hf-detail-grid   { display: flex; flex-wrap: wrap; gap: 8px; }
+    .hf-detail-item   {
+      flex: 1 1 calc(50% - 4px);
+      background: #0d1b2a; border: 1px solid #1f3655;
+      border-radius: 9px; padding: 8px 10px;
+    }
+    .hf-detail-label { font-size: 0.63rem; color: #7a9bb8; margin-bottom: 2px; }
+    .hf-detail-val   { font-size: 0.8rem; font-weight: 700; color: #dce8f5; }
+    .hf-divider { border: none; border-top: 1px solid #1f3655; margin: 10px 0; }
+    .hf-header-flex { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+    .hf-btn-row { display: flex; gap: 6px; flex-wrap: wrap; }
+    .hf-field-row { display: flex; gap: 6px; }
+    .hf-field-row > * { flex: 1; }
+    .hf-row { display: flex; gap: 8px; margin-bottom: 8px; }
+    .hf-row > * { flex: 1; }
+
+    /* ── Annotation / footer ────────────────────────────────── */
+    .doc-footer {
+      text-align: center;
+      padding: 40px 20px 56px;
+      color: #8a99a8;
+      font-size: 0.82rem;
+      border-top: 1px solid #dde3ea;
+      margin-top: 20px;
+    }
+    .doc-footer strong { color: #0d1b2a; }
+
+    /* ── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 780px) {
+      .fidelity-row { flex-direction: column; align-items: center; }
+      .mockup-card  { width: 100%; max-width: 360px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════ COVER ════════════════════════════════ -->
+<div class="cover">
+  <div class="cover-badge">Documento de Diseño · 2026</div>
+  <h1>BikeTracking<br>Mockups de Interfaz</h1>
+  <p>Módulo Motocicletas — Prototipos visuales de las 3 pantallas principales en tres niveles de fidelidad.</p>
+  <div class="cover-grid">
+    <div class="cover-pill"><span>📄</span>Bajo relieve<br><small style="font-weight:400;color:#8bb8d8;">Estructura / Wireframe</small></div>
+    <div class="cover-pill"><span>🎨</span>Medio relieve<br><small style="font-weight:400;color:#8bb8d8;">Estructura + Color</small></div>
+    <div class="cover-pill"><span>✨</span>Alto relieve<br><small style="font-weight:400;color:#8bb8d8;">Diseño final</small></div>
+  </div>
+</div>
+
+
+<!-- ═══════════════════════ PÁGINA 1: LOGIN ══════════════════════════ -->
+<div class="section-header">
+  <div class="tag">Página 1 de 3</div>
+  <h2>Login / Registro</h2>
+  <p>Primer punto de contacto del usuario — autenticación segura con pestañas.</p>
+</div>
+
+<div class="fidelity-row">
+
+  <!-- LOW -->
+  <div class="mockup-card">
+    <div class="mockup-label lbl-low"><div class="dot dot-low"></div>Bajo relieve — Wireframe</div>
+    <div class="mockup-frame lf">
+      <div style="text-align:center;margin-bottom:16px;">
+        <div class="lf-circle" style="width:52px;height:52px;margin:0 auto 8px;"></div>
+        <div class="lf-block" style="height:10px;width:55%;margin:0 auto 6px;"></div>
+        <div class="lf-block" style="height:14px;width:70%;margin:0 auto 6px;"></div>
+        <div class="lf-block" style="height:8px;width:80%;margin:0 auto;"></div>
+      </div>
+      <div class="lf-nav">
+        <div class="lf-nav-item active"></div>
+        <div class="lf-nav-item"></div>
+      </div>
+      <div class="lf-block lf-input"></div>
+      <div class="lf-block lf-input"></div>
+      <div class="lf-btn" style="width:100%;"></div>
+    </div>
+  </div>
+
+  <!-- MID -->
+  <div class="mockup-card">
+    <div class="mockup-label lbl-mid"><div class="dot dot-mid"></div>Medio relieve — Estructura + Color</div>
+    <div class="mockup-frame mf">
+      <div class="mf-brand">
+        <div class="mf-brand-icon">🚴</div>
+        <div class="mf-brand-name">BikeTracking</div>
+        <div class="mf-title">Seguimiento personal</div>
+        <div class="mf-sub">Inicia sesión o crea tu cuenta.</div>
+      </div>
+      <div class="mf-tabs">
+        <div class="mf-tab active">↪ Iniciar sesión</div>
+        <div class="mf-tab">+ Registrarse</div>
+      </div>
+      <div class="mf-label">Usuario</div>
+      <div class="mf-input"><span class="icon">👤</span>Tu nombre de usuario</div>
+      <div class="mf-label">Contraseña</div>
+      <div class="mf-input"><span class="icon">🔒</span>Tu contraseña</div>
+      <div class="mf-btn-primary">↪ Iniciar sesión</div>
+    </div>
+  </div>
+
+  <!-- HIGH -->
+  <div class="mockup-card">
+    <div class="mockup-label lbl-high"><div class="dot dot-high"></div>Alto relieve — Diseño Final</div>
+    <div class="mockup-frame hf">
+      <div class="hf-brand">
+        <div class="hf-brand-icon">🚴</div>
+        <div class="hf-brand-name">BikeTracking</div>
+        <div class="hf-title">Seguimiento personal</div>
+        <div class="hf-sub">Inicia sesión o crea tu cuenta para continuar.</div>
+      </div>
+      <div class="hf-tabs">
+        <div class="hf-tab active">↪ Iniciar sesión</div>
+        <div class="hf-tab">+ Registrarse</div>
+      </div>
+      <div class="hf-label">Usuario</div>
+      <div class="hf-input"><span class="hf-icon">👤</span><span class="hf-ph">Tu nombre de usuario</span></div>
+      <div class="hf-label">Contraseña</div>
+      <div class="hf-input"><span class="hf-icon">🔒</span><span class="hf-ph">Tu contraseña</span></div>
+      <div class="hf-btn-primary">↪ Iniciar sesión</div>
+    </div>
+  </div>
+
+</div><!-- /fidelity-row login -->
+
+
+<!-- ═══════════════════════ PÁGINA 2: INICIO ═════════════════════════ -->
+<div class="section-header" style="background:#f8fafb;margin-top:0;padding-top:48px;">
+  <div class="tag" style="background:#fef3c7;color:#92400e;">Página 2 de 3</div>
+  <h2>Inicio — Dashboard</h2>
+  <p>Resumen rápido del vehículo y acceso directo a las secciones del módulo.</p>
+</div>
+
+<div class="fidelity-row" style="background:#f8fafb;padding-top:0;">
+
+  <!-- LOW -->
+  <div class="mockup-card">
+    <div class="mockup-label lbl-low"><div class="dot dot-low"></div>Bajo relieve — Wireframe</div>
+    <div class="mockup-frame lf">
+      <!-- hero -->
+      <div class="lf-card" style="margin-bottom:10px;">
+        <div class="lf-line" style="width:40%;"></div>
+        <div class="lf-line" style="width:65%;height:14px;"></div>
+        <div class="lf-line short"></div>
+        <div style="display:flex;gap:6px;margin-top:8px;">
+          <div class="lf-block" style="height:10px;width:80px;border-radius:4px;"></div>
+          <div class="lf-btn-outline" style="width:60px;height:24px;"></div>
+        </div>
+      </div>
+      <!-- stats -->
+      <div class="lf-row">
+        <div class="lf-block" style="height:44px;border-radius:8px;"></div>
+        <div class="lf-block" style="height:44px;border-radius:8px;"></div>
+        <div class="lf-block" style="height:44px;border-radius:8px;"></div>
+      </div>
+      <!-- access cards -->
+      <div class="lf-card" style="display:flex;gap:8px;align-items:center;">
+        <div class="lf-icon"></div>
+        <div style="flex:1;">
+          <div class="lf-line" style="width:60%;"></div>
+          <div class="lf-line xshort"></div>
+        </div>
+      </div>
+      <div class="lf-card" style="display:flex;gap:8px;align-items:center;">
+        <div class="lf-icon"></div>
+        <div style="flex:1;">
+          <div class="lf-line" style="width:55%;"></div>
+          <div class="lf-line xshort"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MID -->
+  <div class="mockup-card">
+    <div class="mockup-label lbl-mid"><div class="dot dot-mid"></div>Medio relieve — Estructura + Color</div>
+    <div class="mockup-frame mf">
+      <div class="mf-hero">
+        <div class="mf-header-flex">
+          <div>
+            <div style="font-size:0.62rem;font-weight:700;letter-spacing:0.1em;color:#1a56db;text-transform:uppercase;margin-bottom:4px;">Seguimiento personal</div>
+            <div style="font-size:1rem;font-weight:800;color:#0d1b2a;margin-bottom:3px;">Mi moto en un vistazo</div>
+            <div style="font-size:0.7rem;color:#7a8fa6;">Revisa el estado de tu vehículo.</div>
+          </div>
+          <div class="mf-btn-row">
+            <div style="font-size:0.68rem;color:#7a8fa6;margin-right:4px;">usuario</div>
+            <div class="mf-btn-danger" style="padding:5px 10px;font-size:0.7rem;">↪ Salir</div>
+          </div>
+        </div>
+      </div>
+      <div class="mf-stat-row">
+        <div class="mf-stat"><div class="mf-stat-val">1</div><div class="mf-stat-lbl">Motos</div></div>
+        <div class="mf-stat"><div class="mf-stat-val">3</div><div class="mf-stat-lbl">Servicios</div></div>
+        <div class="mf-stat"><div class="mf-stat-val"><span class="mf-badge mf-badge-success">Activa</span></div><div class="mf-stat-lbl">Estado</div></div>
+      </div>
+      <div style="font-size:0.75rem;font-weight:700;color:#0d1b2a;margin-bottom:8px;">Mi espacio</div>
+      <div class="mf-access">
+        <div class="mf-access-icon" style="background:#e8f0fe;color:#1a56db;">🏍️</div>
+        <div class="mf-access-text"><h4>Datos de mi moto</h4><p>Consulta y actualiza tu vehículo.</p></div>
+      </div>
+      <div class="mf-access">
+        <div class="mf-access-icon" style="background:#fef9e7;color:#e59400;">🔧</div>
+        <div class="mf-access-text"><h4>Mantenimiento personal</h4><p>Guarda servicios y revisiones.</p></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HIGH -->
+  <div class="mockup-card">
+    <div class="mockup-label lbl-high"><div class="dot dot-high"></div>Alto relieve — Diseño Final</div>
+    <div class="mockup-frame hf">
+      <div class="hf-hero">
+        <div class="hf-header-flex">
+          <div>
+            <div class="hf-tracking">Seguimiento personal</div>
+            <div class="hf-display">Mi moto en un vistazo</div>
+            <div class="hf-muted">Revisa el estado actual de tu vehículo.</div>
+          </div>
+          <div class="hf-btn-row">
+            <div style="font-size:0.66rem;color:#7a9bb8;margin-right:2px;">usuario</div>
+            <div class="hf-btn-danger" style="padding:5px 10px;font-size:0.68rem;">↪ Salir</div>
+          </div>
+        </div>
+      </div>
+      <div class="hf-stat-row">
+        <div class="hf-stat"><div class="hf-stat-val">1</div><div class="hf-stat-lbl">Motos</div></div>
+        <div class="hf-stat"><div class="hf-stat-val">3</div><div class="hf-stat-lbl">Servicios</div></div>
+        <div class="hf-stat"><div class="hf-stat-val"><span class="hf-badge hf-badge-success">Activa</span></div><div class="hf-stat-lbl">Estado</div></div>
+      </div>
+      <div style="font-size:0.75rem;font-weight:700;color:#dce8f5;margin-bottom:8px;">Mi espacio</div>
+      <div class="hf-access">
+        <div class="hf-access-icon" style="background:rgba(59,158,255,0.15);color:#3b9eff;">🏍️</div>
+        <div class="hf-access-text"><h4>Datos de mi moto</h4><p>Consulta y actualiza tu vehículo personal.</p></div>
+      </div>
+      <div class="hf-access">
+        <div class="hf-access-icon" style="background:rgba(251,191,36,0.12);color:#f5c242;">🔧</div>
+        <div class="hf-access-text"><h4>Mantenimiento personal</h4><p>Guarda servicios y revisiones.</p></div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /fidelity-row inicio -->
+
+
+<!-- ══════════════════════ PÁGINA 3: MI MOTO ═════════════════════════ -->
+<div class="section-header">
+  <div class="tag" style="background:#fce7f3;color:#9d174d;">Página 3 de 3</div>
+  <h2>Mi Motocicleta</h2>
+  <p>Ficha principal del vehículo — datos técnicos, estado y registro de mantenimientos.</p>
+</div>
+
+<div class="fidelity-row">
+
+  <!-- LOW -->
+  <div class="mockup-card">
+    <div class="mockup-label lbl-low"><div class="dot dot-low"></div>Bajo relieve — Wireframe</div>
+    <div class="mockup-frame lf">
+      <!-- header -->
+      <div class="lf-card" style="margin-bottom:10px;">
+        <div class="lf-row" style="justify-content:space-between;align-items:flex-start;">
+          <div style="flex:1;">
+            <div class="lf-line xshort"></div>
+            <div class="lf-line" style="width:50%;height:14px;"></div>
+            <div class="lf-line short"></div>
+          </div>
+          <div style="display:flex;gap:5px;">
+            <div class="lf-btn-outline" style="width:50px;height:28px;"></div>
+            <div class="lf-btn"         style="width:90px;height:28px;"></div>
+            <div class="lf-btn-outline" style="width:50px;height:28px;"></div>
+          </div>
+        </div>
+      </div>
+      <!-- stats -->
+      <div class="lf-row">
+        <div class="lf-block" style="height:40px;border-radius:8px;"></div>
+        <div class="lf-block" style="height:40px;border-radius:8px;"></div>
+      </div>
+      <!-- vehicle profile card -->
+      <div class="lf-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div>
+            <div class="lf-line" style="width:80px;height:12px;"></div>
+            <div class="lf-line" style="width:50px;height:9px;"></div>
+          </div>
+          <div class="lf-block" style="width:55px;height:20px;border-radius:999px;"></div>
+        </div>
+        <div class="lf-divider"></div>
+        <div class="lf-row">
+          <div class="lf-block" style="height:40px;border-radius:6px;"></div>
+          <div class="lf-block" style="height:40px;border-radius:6px;"></div>
+          <div class="lf-block" style="height:40px;border-radius:6px;"></div>
+        </div>
+        <div class="lf-row" style="margin-top:8px;">
+          <div class="lf-block" style="height:40px;border-radius:6px;"></div>
+          <div class="lf-block" style="height:40px;border-radius:6px;"></div>
+          <div class="lf-block" style="height:40px;border-radius:6px;"></div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:10px;justify-content:flex-end;">
+          <div class="lf-btn-outline" style="width:55px;height:26px;"></div>
+          <div class="lf-btn"         style="width:55px;height:26px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MID -->
+  <div class="mockup-card">
+    <div class="mockup-label lbl-mid"><div class="dot dot-mid"></div>Medio relieve — Estructura + Color</div>
+    <div class="mockup-frame mf">
+      <div class="mf-hero">
+        <div class="mf-header-flex">
+          <div>
+            <div style="font-size:0.62rem;font-weight:700;letter-spacing:0.1em;color:#1a56db;text-transform:uppercase;margin-bottom:3px;">BikeTracking</div>
+            <div style="font-size:1rem;font-weight:800;color:#0d1b2a;margin-bottom:2px;">Mi motocicleta</div>
+            <div style="font-size:0.7rem;color:#7a8fa6;">Mantén los datos al día.</div>
+          </div>
+          <div class="mf-btn-row">
+            <div class="mf-btn-secondary" style="padding:5px 10px;font-size:0.7rem;">← Inicio</div>
+            <div class="mf-btn-primary" style="padding:5px 10px;font-size:0.7rem;width:auto;">+ Registrar</div>
+            <div class="mf-btn-danger"  style="padding:5px 10px;font-size:0.7rem;">↪ Salir</div>
+          </div>
+        </div>
+      </div>
+      <div class="mf-stat-row">
+        <div class="mf-stat"><div class="mf-stat-val">1</div><div class="mf-stat-lbl">Motos reg.</div></div>
+        <div class="mf-stat"><div class="mf-stat-val"><span class="mf-badge mf-badge-success">Activa</span></div><div class="mf-stat-lbl">Estado</div></div>
+      </div>
+      <div class="mf-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div>
+            <div class="mf-card-title">YAMAHA FZ25</div>
+            <div class="mf-card-sub">ABC-123 · 2023</div>
+          </div>
+          <span class="mf-badge mf-badge-success">Activa</span>
+        </div>
+        <hr class="mf-divider"/>
+        <div class="mf-detail-grid">
+          <div class="mf-detail-item"><div class="mf-detail-label">Marca</div><div class="mf-detail-val">Yamaha</div></div>
+          <div class="mf-detail-item"><div class="mf-detail-label">Modelo</div><div class="mf-detail-val">FZ25</div></div>
+          <div class="mf-detail-item"><div class="mf-detail-label">Año</div><div class="mf-detail-val">2023</div></div>
+          <div class="mf-detail-item"><div class="mf-detail-label">Cilindraje</div><div class="mf-detail-val">249 cc</div></div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:10px;justify-content:flex-end;">
+          <div class="mf-btn-secondary" style="padding:5px 12px;font-size:0.72rem;">✏️ Editar</div>
+          <div style="background:#fee2e2;color:#b91c1c;border-radius:8px;padding:5px 12px;font-size:0.72rem;font-weight:600;">🗑️ Borrar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- HIGH -->
+  <div class="mockup-card">
+    <div class="mockup-label lbl-high"><div class="dot dot-high"></div>Alto relieve — Diseño Final</div>
+    <div class="mockup-frame hf">
+      <div class="hf-hero">
+        <div class="hf-header-flex">
+          <div>
+            <div class="hf-tracking">BikeTracking</div>
+            <div class="hf-display">Mi motocicleta</div>
+            <div class="hf-muted">Mantén los datos al día.</div>
+          </div>
+          <div class="hf-btn-row">
+            <div class="hf-btn-outline" style="padding:5px 10px;font-size:0.68rem;">← Inicio</div>
+            <div class="hf-btn-primary" style="padding:5px 10px;font-size:0.68rem;border-radius:8px;background:linear-gradient(135deg,#3b9eff,#1a72d9);color:#fff;font-weight:700;">+ Registrar</div>
+            <div class="hf-btn-danger"  style="padding:5px 10px;font-size:0.68rem;">↪ Salir</div>
+          </div>
+        </div>
+      </div>
+      <div class="hf-stat-row">
+        <div class="hf-stat"><div class="hf-stat-val">1</div><div class="hf-stat-lbl">Motos reg.</div></div>
+        <div class="hf-stat"><div class="hf-stat-val"><span class="hf-badge hf-badge-success">Activa</span></div><div class="hf-stat-lbl">Estado</div></div>
+      </div>
+      <div class="hf-card">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+          <div>
+            <div class="hf-card-title">YAMAHA FZ25</div>
+            <div class="hf-card-sub">ABC-123 · 2023</div>
+          </div>
+          <span class="hf-badge hf-badge-success">Activa</span>
+        </div>
+        <hr class="hf-divider"/>
+        <div class="hf-detail-grid">
+          <div class="hf-detail-item"><div class="hf-detail-label">Marca</div><div class="hf-detail-val">Yamaha</div></div>
+          <div class="hf-detail-item"><div class="hf-detail-label">Modelo</div><div class="hf-detail-val">FZ25</div></div>
+          <div class="hf-detail-item"><div class="hf-detail-label">Año</div><div class="hf-detail-val">2023</div></div>
+          <div class="hf-detail-item"><div class="hf-detail-label">Cilindraje</div><div class="hf-detail-val">249 cc</div></div>
+        </div>
+        <div style="display:flex;gap:6px;margin-top:10px;justify-content:flex-end;">
+          <div class="hf-btn-outline" style="padding:5px 12px;font-size:0.7rem;">✏️ Editar</div>
+          <div style="background:rgba(248,113,113,0.12);color:#f87171;border:1px solid rgba(248,113,113,0.25);border-radius:8px;padding:5px 12px;font-size:0.7rem;font-weight:600;">🗑️ Borrar</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /fidelity-row mi-moto -->
+
+
+<!-- ════════════════════════ FOOTER ══════════════════════════════════ -->
+<div class="doc-footer">
+  <strong>BikeTracking — Módulo Motocicletas</strong> · Mockups de Interfaz · 2026<br>
+  3 páginas × 3 niveles de fidelidad — Bajo · Medio · Alto
+</div>
+
+</body>
+</html>
