@@ -29,6 +29,7 @@ const ui = {
 };
 
 const modal = new bootstrap.Modal(document.getElementById("motoModal"));
+const COLOMBIA_MOTO_PLATE_REGEX = /^[A-Z]{3}\d{2}[A-Z]$/;
 
 function escapeHtml(value) {
   return String(value)
@@ -290,6 +291,12 @@ ui.form.addEventListener("submit", async (event) => {
     relieve: ui.fields.relieve.value,
     propietario: ui.fields.propietario.value.trim()
   };
+
+  if (!COLOMBIA_MOTO_PLATE_REGEX.test(payload.placa)) {
+    notify("danger", "La placa debe tener formato colombiano de moto: ABC12D.");
+    ui.fields.placa.focus();
+    return;
+  }
 
   try {
     const targetId = ui.fields.id.value || state.motos[0]?.id;

@@ -125,7 +125,7 @@ Ejemplo de body para crear o editar una moto:
 
 ```json
 {
-  "placa": "ABC123",
+  "placa": "ABC12D",
   "marca": "Yamaha",
   "modelo": "FZ25",
   "anio": 2022,

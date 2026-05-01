@@ -118,6 +118,11 @@ function validateMoto(payload, existingMotos, currentId = null) {
   }
 
   const placaInput = normalize(payload.placa).toUpperCase();
+  const placaMotoColombia = /^[A-Z]{3}\d{2}[A-Z]$/;
+  if (payload.placa && !placaMotoColombia.test(placaInput)) {
+    errors.push("La placa debe tener formato colombiano de moto: ABC12D.");
+  }
+
   const placaDuplicada = existingMotos.some(
     (m) => m.placa.toUpperCase() === placaInput && m.id !== currentId
   );
