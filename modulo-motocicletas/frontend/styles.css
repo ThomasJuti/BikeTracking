@@ -1,4 +1,5 @@
-:root {
+:root,
+[data-bt-theme="dark"] {
   --bg: #0d1b2a;
   --surface: #122236;
   --surface-2: #1a2f47;
@@ -7,6 +8,28 @@
   --line: #1f3655;
   --brand: #3b9eff;
   --brand-2: #00c4b0;
+}
+
+[data-bt-theme="light"] {
+  --bg: #f0f6ff;
+  --surface: #ffffff;
+  --surface-2: #e4effe;
+  --text: #0d1b2a;
+  --muted: #4a6a8a;
+  --line: #c2d8f5;
+  --brand: #1a7fd4;
+  --brand-2: #009e8a;
+}
+
+[data-bt-theme="esmeralda"] {
+  --bg: #081a14;
+  --surface: #0d2a1e;
+  --surface-2: #143d2c;
+  --text: #d0f0e8;
+  --muted: #5a9e8c;
+  --line: #1a4d38;
+  --brand: #00c4b0;
+  --brand-2: #3b9eff;
 }
 
 * {
@@ -22,6 +45,21 @@ body {
   color: var(--text);
   min-height: 100vh;
   overflow-x: hidden;
+  transition: background 300ms ease, color 300ms ease;
+}
+
+[data-bt-theme="light"] body {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(26, 127, 212, 0.10), transparent 40%),
+    radial-gradient(circle at 90% 20%, rgba(0, 158, 138, 0.08), transparent 44%),
+    var(--bg);
+}
+
+[data-bt-theme="esmeralda"] body {
+  background:
+    radial-gradient(circle at 10% 10%, rgba(0, 196, 176, 0.18), transparent 40%),
+    radial-gradient(circle at 90% 20%, rgba(59, 158, 255, 0.12), transparent 44%),
+    var(--bg);
 }
 
 .bg-shape {
@@ -147,6 +185,14 @@ body {
   padding: 1rem;
 }
 
+[data-bt-theme="light"] .profile-detail {
+  background: rgba(228, 239, 254, 0.85);
+}
+
+[data-bt-theme="esmeralda"] .profile-detail {
+  background: rgba(13, 42, 30, 0.85);
+}
+
 .profile-label {
   color: var(--muted);
   font-size: 0.85rem;
@@ -191,7 +237,7 @@ body {
   }
 }
 
-/* ─── Dark overrides Bootstrap ───────────────────────────────────────── */
+/* ─── Bootstrap overrides ────────────────────────────────────────────── */
 .form-control,
 .form-select {
   background-color: var(--surface-2);
@@ -229,6 +275,57 @@ body {
   background: var(--line);
   color: var(--text);
   border-color: var(--line);
+}
+
+/* ─── Theme switcher (3 dots) ────────────────────────────────────────── */
+.theme-switcher {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  background: var(--surface-2);
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  padding: 5px 8px;
+}
+
+.theme-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 150ms ease, border-color 150ms ease;
+  flex-shrink: 0;
+}
+
+.theme-dot:hover {
+  transform: scale(1.2);
+}
+
+.theme-dot.active {
+  border-color: var(--text);
+  transform: scale(1.15);
+}
+
+.theme-dot[data-theme="dark"] {
+  background: linear-gradient(135deg, #0d1b2a 50%, #3b9eff 100%);
+}
+
+.theme-dot[data-theme="light"] {
+  background: linear-gradient(135deg, #f0f6ff 50%, #1a7fd4 100%);
+}
+
+.theme-dot[data-theme="esmeralda"] {
+  background: linear-gradient(135deg, #081a14 50%, #00c4b0 100%);
+}
+
+/* Flotante en login */
+.theme-float {
+  position: fixed;
+  top: 1rem;
+  right: 1rem;
+  z-index: 1000;
 }
 
 /* ─── Login page ─────────────────────────────────────────────────────── */

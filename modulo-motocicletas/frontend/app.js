@@ -23,6 +23,7 @@ const ui = {
     anio: document.getElementById("anio"),
     cilindraje: document.getElementById("cilindraje"),
     estado: document.getElementById("estado"),
+    relieve: document.getElementById("relieve"),
     propietario: document.getElementById("propietario")
   }
 };
@@ -172,6 +173,12 @@ function renderProfile() {
             <p class="profile-value mb-0">${escapeHtml(moto.cilindraje)}</p>
           </div>
         </div>
+        <div class="col-12 col-md-6 col-xl-3">
+          <div class="profile-detail h-100">
+            <p class="profile-label mb-1">Relieve</p>
+            <p class="profile-value mb-0 text-capitalize">${escapeHtml(moto.relieve || "—")}</p>
+          </div>
+        </div>
       </div>
     </article>
   `;
@@ -234,6 +241,7 @@ function fillForm(moto) {
   ui.fields.anio.value = moto.anio;
   ui.fields.cilindraje.value = moto.cilindraje;
   ui.fields.estado.value = moto.estado;
+  ui.fields.relieve.value = moto.relieve || "bajo";
   ui.fields.propietario.value = moto.propietario;
 }
 
@@ -279,6 +287,7 @@ ui.form.addEventListener("submit", async (event) => {
     anio: Number(ui.fields.anio.value),
     cilindraje: ui.fields.cilindraje.value.trim(),
     estado: ui.fields.estado.value,
+    relieve: ui.fields.relieve.value,
     propietario: ui.fields.propietario.value.trim()
   };
 

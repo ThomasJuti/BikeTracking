@@ -19,6 +19,7 @@
       rel="stylesheet"
     />
     <link rel="stylesheet" href="styles.css" />
+    <script src="theme.js"></script>
   </head>
   <body>
     <div class="bg-shape bg-shape-1"></div>
@@ -44,6 +45,11 @@
                 <i class="bi bi-plus-lg"></i>
                 Registrar mi moto
               </button>
+              <div class="theme-switcher">
+                <button class="theme-dot" data-theme="dark" title="Oscuro"></button>
+                <button class="theme-dot" data-theme="light" title="Claro"></button>
+                <button class="theme-dot" data-theme="esmeralda" title="Esmeralda"></button>
+              </div>
               <button class="btn btn-outline-danger btn-lg" id="btnLogout">
                 <i class="bi bi-box-arrow-right"></i> Salir
               </button>
@@ -108,6 +114,14 @@
                   <option value="activa">Activa</option>
                   <option value="mantenimiento">Mantenimiento</option>
                   <option value="inactiva">Inactiva</option>
+                </select>
+              </div>
+              <div class="col-md-4">
+                <label for="relieve" class="form-label">Relieve</label>
+                <select id="relieve" class="form-select" required>
+                  <option value="bajo">Bajo — Ciudad / asfalto</option>
+                  <option value="medio">Medio — Mixto</option>
+                  <option value="alto">Alto — Montana / offroad</option>
                 </select>
               </div>
               <div class="col-12">

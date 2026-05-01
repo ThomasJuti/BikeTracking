@@ -1,120 +1,80 @@
-# BikeTracking - Sistema de Gestión de Motocicletas
+# BikeTracking
 
-**BikeTracking** es una aplicación web moderna desarrollada con Angular y NestJS, diseñada para ayudar a los motociclistas a gestionar el mantenimiento de sus vehículos de manera eficiente.
-
-## 🚀 Características Principales
-
-- **Gestión de Motocicletas**: Registro, edición y eliminación de motocicletas con detalles como placa, marca, modelo, año, cilindraje, estado y propietario.
-- **Registro de Mantenimientos**: Control detallado de servicios de mantenimiento, incluyendo tipo, descripción, fecha, costo y técnico responsable.
-- **Dashboard Interactivo**: Visualización clara del estado actual de la motocicleta y próximos mantenimientos sugeridos.
-- **Diseño Moderno**: Interfaz de usuario intuitiva y responsive desarrollada con Tailwind CSS.
-
-## 🛠️ Tecnologías Utilizadas
-
-### Frontend
-- **Framework**: Angular 21
-- **Lenguaje**: TypeScript
-- **Estilos**: Tailwind CSS
-- **Arquitectura**: Standalone Components
-
-### Backend
-- **Framework**: NestJS
-- **Lenguaje**: TypeScript
-- **Base de Datos**: PostgreSQL
-- **ORM**: Prisma
-
-## 📂 Estructura del Proyecto
-
-```
-BikeTracking/
-├── Backend/              # API REST con NestJS
-│   ├── src/
-│   │   ├── motos/        # Módulo de motocicletas
-│   │   ├── mantenimientos/ # Módulo de mantenimientos
-│   │   └── ...
-│   └── package.json
-│
-└── Frontend/             # Aplicación web con Angular
-    ├── src/
-    │   ├── app/
-    │   │   ├── modules/
-    │   │   │   └── motocicletas/
-    │   │   │       ├── pages/
-    │   │   │       │   ├── mi-moto/          # Gestión de la motocicleta
-    │   │   │       │   └── mantenimiento/    # Registro de mantenimientos
-    │   │   │       └── components/         # Componentes reutilizables
-    │   │   └── ...
-    │   └── ...
-    └── package.json
-```
-
-## 🚀 Instalación y Ejecución
-
-### Requisitos Previos
-- Node.js (v18 o superior)
-- npm
-- PostgreSQL (opcional, se puede usar SQLite para desarrollo)
-
-### 1. Backend
-
-```bash
-# Navegar al directorio del backend
-cd Backend
-
-# Instalar dependencias
-npm install
-
-# Crear base de datos (si usas PostgreSQL)
-npx prisma migrate dev --name init
-
-# Ejecutar la aplicación
-npm run start:dev
-```
-
-### 2. Frontend
-
-```bash
-# Navegar al directorio del frontend
-cd Frontend
-
-# Instalar dependencias
-npm install
-
-# Ejecutar la aplicación
-npm run start
-```
-
-La aplicación estará disponible en `http://localhost:4200`.
-
-## 📝 Notas de Desarrollo
-
-- El backend expone endpoints en `/api/motos` y `/api/mantenimientos`.
-- El frontend se comunica con el backend a través de `http://localhost:3000/api`.
-- Se ha implementado un sistema de validación de datos en ambos lados para asegurar la integridad de la información.
+Repositorio principal del proyecto BikeTracking. Aquí conviven los entregables del proyecto académico, la implementación principal del sistema y el módulo personal de motocicletas desarrollado en paralelo.
 
 ---
 
-## 📌 Módulo Motocicletas (Express + Vanilla JS)
+## 🚀 Contenido del repositorio
 
-Módulo independiente con autenticación completa. Ubicado en `modulo-motocicletas/`.
+- **Backend/**: implementación principal del backend del proyecto.
+- **Frontend/**: implementación principal del frontend del proyecto.
+- **modulo-motocicletas/**: módulo funcional independiente con Node.js + Express + frontend vanilla.
+- **Documents y archivos de planeación**: cronogramas, matrices y documentos de gestión del proyecto.
 
-### ✅ Lo que incluye
-- Sistema de autenticación: registro, login, logout
-- Contraseñas hasheadas con **scrypt + salt** (Node.js crypto nativo)
-- Tokens de sesión seguros de 32 bytes
-- Todas las rutas de la API protegidas con `Authorization: Bearer <token>`
-- Frontend con página de login, guards en todas las vistas y botones de logout
+---
 
-### 🚀 Cómo ejecutar el módulo
+## 📂 Estructura general
+
+```text
+BikeTracking/
+├── Backend/
+├── Frontend/
+├── modulo-motocicletas/
+├── Documents
+├── Estructura de Desglose del Trabajo.xlsx
+├── MATRIZ DE GESTION DE RIESGOS.xlsx
+├── MATRIZ RACI.xlsx
+├── Planeacion cronograma proyecto bikertracker .xlsx
+├── Planeacion cronograma proyecto bikertracker corregido.xlsx
+└── README.md
+```
+
+---
+
+## 🏍️ Módulo Motocicletas
+
+El directorio `modulo-motocicletas/` contiene un módulo ejecutable de forma independiente con las siguientes capacidades:
+
+- Registro e inicio de sesión de usuarios.
+- Gestión de motocicletas.
+- Registro de mantenimientos.
+- Dashboard personal.
+- Tres temas visuales: Oscuro, Claro y Esmeralda.
+
+Documentación específica del módulo:
+
+- `modulo-motocicletas/README.md`
+
+---
+
+## 🛠️ Tecnologías presentes en el repositorio
+
+- Node.js
+- Express
+- HTML, CSS y JavaScript
+- Bootstrap
+- Angular y NestJS en la implementación principal del proyecto
+
+---
+
+## ▶️ Ejecución rápida del módulo independiente
+
 ```bash
 cd modulo-motocicletas/backend
 npm install
-npm run start
+npm start
 ```
-Accede en **http://localhost:3000** → redirige automáticamente a `/login.html`
 
-Ver `modulo-motocicletas/README.md` para documentación completa de endpoints.
+Luego abre:
+
+```text
+http://localhost:3000
+```
 
 ---
 
-**¡Gracias por usar BikeTracking!** 
+## 📝 Notas
+
+- El módulo `modulo-motocicletas` puede ejecutarse sin depender del resto de carpetas del repositorio.
+- La documentación detallada de endpoints, autenticación y vistas está en `modulo-motocicletas/README.md`.
+- Este repositorio también conserva archivos académicos y de planificación del proyecto original.

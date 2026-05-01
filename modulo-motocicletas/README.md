@@ -1,87 +1,128 @@
-# Módulo Motocicletas — BikeTracking
+# 🏍️ Módulo Motocicletas — BikeTracking
 
-Módulo de seguimiento personal de motocicletas. Permite a cada usuario registrar su vehículo, consultar su estado y llevar un historial de mantenimientos.
+Aplicación web para el seguimiento personal de motocicletas. Este módulo fue construido con **Node.js + Express** en el backend y **HTML, CSS y JavaScript vanilla** en el frontend. Permite registrar usuarios, iniciar sesión, gestionar la ficha principal de una moto y llevar control básico de mantenimientos.
 
 ---
 
-## Estructura del proyecto
+## 🚀 Características principales
 
-```
+- **Autenticación** con registro, login y logout.
+- **Hash seguro de contraseñas** usando `crypto.scryptSync` y comparación con `timingSafeEqual`.
+- **Gestión de motocicletas** con creación, consulta, edición y eliminación.
+- **Registro de mantenimientos** con validación de fecha, costo, tipo y técnico responsable.
+- **Dashboard personal** con acceso rápido a las vistas principales.
+- **Tres temas visuales**: Oscuro, Claro y Esmeralda.
+- **Interfaz responsive** con Bootstrap 5.
+
+---
+
+## 🛠️ Tecnologías utilizadas
+
+### Backend
+| Tecnología | Uso |
+|---|---|
+| Node.js | Entorno de ejecución |
+| Express 4 | API REST y servidor web |
+| `crypto` | Hash de contraseñas y tokens de sesión |
+| JSON Files | Persistencia local de datos |
+
+### Frontend
+| Tecnología | Uso |
+|---|---|
+| HTML5 | Estructura de vistas |
+| CSS3 | Estilos y sistema de temas |
+| JavaScript | Lógica del cliente |
+| Bootstrap 5.3.3 | Layout y componentes responsive |
+| Bootstrap Icons | Iconografía |
+| Google Fonts: Sora | Tipografía principal |
+
+---
+
+## 📂 Estructura del proyecto
+
+```text
 modulo-motocicletas/
 ├── backend/
-│   ├── server.js              # API REST con Express + autenticación
 │   ├── package.json
+│   ├── server.js
 │   └── data/
-│       ├── motos.json         # Almacenamiento de motocicletas
+│       ├── motos.json
 │       ├── mantenimientos.json
-│       └── users.json         # Usuarios registrados (contraseñas hasheadas)
-└── frontend/
-    ├── login.html             # Pantalla de acceso / registro
-    ├── login.js
-    ├── home.html              # Dashboard personal
-    ├── home.js
-    ├── index.html             # Ficha de la moto
-    ├── app.js
-    ├── maintenance.html       # Formulario de mantenimiento
-    ├── maintenance.js
-    └── styles.css
+│       └── users.json
+├── frontend/
+│   ├── app.js
+│   ├── home.html
+│   ├── home.js
+│   ├── index.html
+│   ├── login.html
+│   ├── login.js
+│   ├── maintenance.html
+│   ├── maintenance.js
+│   ├── styles.css
+│   └── theme.js
+└── mockups.html
 ```
 
 ---
 
-## Cómo ejecutar
+## 🚀 Instalación y ejecución
 
-### 1. Instalar dependencias
+### Requisitos previos
+
+- Node.js 18 o superior
+- npm
+
+### Pasos
+
 ```bash
 cd modulo-motocicletas/backend
 npm install
+npm start
 ```
 
-### 2. Iniciar el servidor
-```bash
-npm run start
-```
+La aplicación queda disponible en `http://localhost:3000`.
 
-El servidor levanta en **http://localhost:3000** y sirve también el frontend estático.
+El backend también sirve el frontend de forma estática, así que no hace falta levantar un servidor adicional para la interfaz.
 
 ---
 
-## Endpoints de la API
+## 🔌 Endpoints disponibles
+
+### Salud del servicio
+
+| Método | Ruta | Descripción |
+|---|---|---|
+| `GET` | `/api/health` | Verifica que el módulo esté activo |
 
 ### Autenticación
 
 | Método | Ruta | Descripción |
-|--------|------|-------------|
-| `POST` | `/api/auth/register` | Registrar nuevo usuario |
-| `POST` | `/api/auth/login` | Iniciar sesión, devuelve `token` |
-| `POST` | `/api/auth/logout` | Cerrar sesión, invalida el token |
+|---|---|---|
+| `POST` | `/api/auth/register` | Crea un nuevo usuario |
+| `POST` | `/api/auth/login` | Inicia sesión y devuelve token |
+| `POST` | `/api/auth/logout` | Cierra la sesión actual |
 
-**Body de registro/login:**
+Ejemplo de body para registro o login:
+
 ```json
-{ "username": "miusuario", "password": "micontrasena" }
+{
+  "username": "admin",
+  "password": "admin123"
+}
 ```
-
-**Respuesta de login:**
-```json
-{ "token": "...", "username": "miusuario" }
-```
-
-> Todas las rutas de `/api/motos` y `/api/mantenimientos` requieren el header:
-> `Authorization: Bearer <token>`
-
----
 
 ### Motocicletas
 
 | Método | Ruta | Descripción |
-|--------|------|-------------|
-| `GET` | `/api/motos` | Listar motos (soporta `?q=` y `?estado=`) |
-| `GET` | `/api/motos/:id` | Obtener moto por ID |
-| `POST` | `/api/motos` | Registrar nueva moto |
-| `PUT` | `/api/motos/:id` | Actualizar datos de la moto |
-| `DELETE` | `/api/motos/:id` | Eliminar moto |
+|---|---|---|
+| `GET` | `/api/motos` | Lista motocicletas registradas |
+| `GET` | `/api/motos/:id` | Obtiene una motocicleta por ID |
+| `POST` | `/api/motos` | Crea una motocicleta |
+| `PUT` | `/api/motos/:id` | Actualiza una motocicleta |
+| `DELETE` | `/api/motos/:id` | Elimina una motocicleta |
 
-**Campos requeridos al crear/editar:**
+Ejemplo de body para crear o editar una moto:
+
 ```json
 {
   "placa": "ABC123",
@@ -94,70 +135,93 @@ El servidor levanta en **http://localhost:3000** y sirve también el frontend es
 }
 ```
 
-Estados válidos: `activa` | `mantenimiento` | `inactiva`
+Estados válidos:
 
----
+- `activa`
+- `mantenimiento`
+- `inactiva`
 
 ### Mantenimientos
 
 | Método | Ruta | Descripción |
-|--------|------|-------------|
-| `GET` | `/api/mantenimientos` | Listar todos los mantenimientos |
-| `POST` | `/api/mantenimientos` | Registrar nuevo mantenimiento |
+|---|---|---|
+| `GET` | `/api/mantenimientos` | Lista mantenimientos registrados |
+| `POST` | `/api/mantenimientos` | Crea un mantenimiento |
 
-**Campos requeridos al crear:**
+Ejemplo de body para registrar un mantenimiento:
+
 ```json
 {
-  "moto_id": "<id de la moto>",
+  "moto_id": "1714600000000-12345",
   "tipo": "preventivo",
-  "descripcion": "Cambio de aceite",
+  "descripcion": "Cambio de aceite y revision general",
   "fecha": "2026-04-30",
-  "costo": 45000,
+  "costo": 45,
   "tecnico": "Carlos Lopez"
 }
 ```
 
-Tipos válidos: `preventivo` | `correctivo` | `revision`
+Tipos válidos:
+
+- `preventivo`
+- `correctivo`
+- `revision`
+
+> Las rutas de datos requieren el header `Authorization: Bearer <token>`.
 
 ---
 
-## Autenticación (detalle técnico)
+## 🔐 Seguridad y sesiones
 
-- Las contraseñas se almacenan con **scrypt + salt aleatorio** (módulo nativo `crypto` de Node.js). Nunca se guardan en texto plano.
-- Los tokens de sesión son cadenas hexadecimales de **32 bytes generadas aleatoriamente**.
-- Las sesiones se mantienen **en memoria** del servidor; al reiniciar el proceso, los tokens se invalidan (los datos de usuarios persisten en `users.json`).
-- Se usa `crypto.timingSafeEqual` para comparar hashes y evitar ataques de tiempo.
+- Las contraseñas no se guardan en texto plano.
+- Cada contraseña se almacena como `salt:hash` usando `scrypt`.
+- Los tokens se generan con `crypto.randomBytes(32)`.
+- Las sesiones se almacenan en memoria del servidor.
+- Si el servidor se reinicia, los usuarios siguen existiendo, pero las sesiones activas se invalidan.
 
 ---
 
-## Vistas del frontend
+## 🖥️ Vistas del frontend
 
 | Ruta | Descripción |
-|------|-------------|
-| `/login.html` | Pantalla de inicio de sesión y registro de cuenta |
-| `/home.html` | Dashboard personal: estado de la moto y acceso rápido a módulos |
-| `/index.html` | Ficha principal: crear, editar y eliminar la moto |
-| `/maintenance.html` | Formulario para registrar servicios y mantenimientos |
-
-Todas las vistas redirigen automáticamente a `/login.html` si no hay sesión activa. El token se almacena en `sessionStorage` del navegador.
+|---|---|
+| `/login.html` | Acceso y registro de usuario |
+| `/home.html` | Dashboard principal |
+| `/index.html` | Gestión de la motocicleta |
+| `/maintenance.html` | Registro de mantenimientos |
+| `/mockups.html` | Mockups académicos de baja, media y alta fidelidad |
 
 ---
 
-## Avances de la sesión (30 de abril 2026)
+## 🔄 Recorrido de uso
 
-### Sincronización con repositorio principal
-- Se conectó el remoto `upstream` al repositorio `ThomasJuti/BikeTracking`.
-- Se actualizó la rama `main` local con los cambios del equipo (66 archivos, +21 762 líneas) incluyendo el backend NestJS y el frontend Angular del proyecto completo.
-- Se publicaron los cambios a `origin/main`.
+1. El usuario entra a `/login.html` y puede registrarse o iniciar sesión.
+2. Después del acceso llega a `/home.html`, donde ve el resumen general y accesos rápidos.
+3. En `/index.html` registra o edita la ficha principal de su motocicleta.
+4. En `/maintenance.html` guarda los servicios realizados sobre la moto.
+5. Desde cualquier vista puede cambiar entre los temas **Oscuro**, **Claro** y **Esmeralda**.
 
-### Módulo motocicletas ejecutado y validado
-- Se levantó el servidor Express en `http://localhost:3000`.
-- Se verificaron las tres vistas del frontend: home, ficha de moto y mantenimientos.
-- Se confirmó que la API respondía correctamente (sin datos iniciales).
+---
 
-### Sistema de autenticación implementado
-- **Backend:** Endpoints de registro, login y logout con contraseñas hasheadas (scrypt).
-- **Protección de rutas:** Todas las rutas de la API requieren token válido (`401` en caso contrario).
-- **Frontend:** Nueva página `login.html` / `login.js` con formularios de acceso y registro.
-- **Guards:** Los tres módulos JS (`app.js`, `home.js`, `maintenance.js`) redirigen al login si no hay sesión.
-- **Logout:** Botón "Salir" agregado en todas las páginas protegidas.
+## 🎨 Sistema de temas
+
+La interfaz incluye tres temas visuales seleccionables desde el encabezado:
+
+- **Oscuro**
+- **Claro**
+- **Esmeralda**
+
+La selección se guarda en `localStorage`, por lo que el usuario conserva su preferencia entre páginas y recargas.
+
+---
+
+## 📝 Notas de desarrollo
+
+- Los archivos `motos.json`, `mantenimientos.json` y `users.json` se crean automáticamente si no existen.
+- `users.json` está excluido del repositorio mediante `.gitignore`.
+- El frontend usa `sessionStorage` para conservar el token de acceso durante la sesión del navegador.
+- El módulo está pensado como una implementación ligera, académica y fácil de ejecutar localmente.
+
+---
+
+Desarrollado como parte del proyecto **BikeTracking**.
