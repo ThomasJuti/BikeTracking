@@ -1,0 +1,101 @@
+<div class="auth-wrapper">
+  <!-- Fondo animado -->
+  <div class="auth-bg">
+    <div class="auth-bg-ring auth-bg-ring-1"></div>
+    <div class="auth-bg-ring auth-bg-ring-2"></div>
+    <div class="auth-bg-grid"></div>
+  </div>
+
+  <div class="auth-container">
+    <!-- Marca -->
+    <header class="auth-brand">
+      <div class="auth-brand-icon">
+        <i class="bi bi-speedometer2"></i>
+      </div>
+      <span class="auth-brand-name">BIKETRACKING<span style="color: var(--neon-red)">_</span></span>
+    </header>
+
+    <!-- Card principal -->
+    <div class="auth-card">
+      <div class="auth-card-inner">
+        <h1 class="auth-title">Bienvenido</h1>
+        <p class="auth-subtitle">Accede a tu panel de seguimiento personal</p>
+
+        <!-- Error -->
+        @if (error()) {
+          <div class="auth-alert" role="alert" id="login-error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            {{ error() }}
+          </div>
+        }
+
+        <!-- Formulario -->
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate id="login-form">
+          <div class="auth-field">
+            <label class="auth-label" for="login-email">Correo electrónico</label>
+            <div class="auth-input-wrap">
+              <i class="bi bi-envelope auth-input-icon"></i>
+              <input
+                id="login-email"
+                type="email"
+                class="auth-input"
+                formControlName="email"
+                placeholder="tu@correo.com"
+                autocomplete="email"
+              />
+            </div>
+            @if (form.get('email')?.invalid && form.get('email')?.touched) {
+              <span class="auth-field-error">Ingresa un correo válido</span>
+            }
+          </div>
+
+          <div class="auth-field">
+            <label class="auth-label" for="login-password">Contraseña</label>
+            <div class="auth-input-wrap">
+              <i class="bi bi-lock auth-input-icon"></i>
+              <input
+                id="login-password"
+                [type]="showPassword() ? 'text' : 'password'"
+                class="auth-input auth-input-password"
+                formControlName="password"
+                placeholder="••••••••"
+                autocomplete="current-password"
+              />
+              <button
+                type="button"
+                class="auth-toggle-eye"
+                (click)="togglePassword()"
+                [attr.aria-label]="showPassword() ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+              >
+                <i [class]="showPassword() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+              </button>
+            </div>
+            @if (form.get('password')?.invalid && form.get('password')?.touched) {
+              <span class="auth-field-error">Mínimo 6 caracteres</span>
+            }
+          </div>
+
+          <button
+            id="login-submit"
+            type="submit"
+            class="auth-btn"
+            [disabled]="form.invalid || loading()"
+          >
+            @if (loading()) {
+              <span class="auth-spinner"></span>
+              Ingresando...
+            } @else {
+              Ingresar
+              <i class="bi bi-arrow-right-short"></i>
+            }
+          </button>
+        </form>
+
+        <p class="auth-switch">
+          ¿No tienes cuenta?
+          <a routerLink="/auth/register" class="auth-switch-link" id="go-register">Regístrate</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

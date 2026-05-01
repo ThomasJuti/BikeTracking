@@ -1,13 +1,15 @@
-import { ChangeDetectorRef, Component, inject, OnInit } from '@angular/core';
+import { Component, inject, OnInit, ChangeDetectorRef, DestroyRef, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { forkJoin } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SectionHeroComponent } from '../../components/section-hero/section-hero';
 import { Mantenimiento } from '../../models/mantenimiento.model';
 import { Moto } from '../../models/moto.model';
 import { MotocicletasApiService } from '../../services/motocicletas-api.service';
 
 @Component({
-  selector: 'app-home-dashboard',
+  selector: 'app-home-0dashboard',
   standalone: true,
   imports: [RouterLink, SectionHeroComponent],
   templateUrl: './home-dashboard.html',
@@ -15,6 +17,8 @@ import { MotocicletasApiService } from '../../services/motocicletas-api.service'
 export class HomeDashboardPageComponent implements OnInit {
   private readonly api = inject(MotocicletasApiService);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly platformId = inject(PLATFORM_ID);
 
   loading = true;
   error = '';
@@ -22,30 +26,38 @@ export class HomeDashboardPageComponent implements OnInit {
   mantenimientosDeMoto: Mantenimiento[] = [];
 
   ngOnInit(): void {
+    if (!isPlatformBrowser(this.platformId)) {
+      this.loading = false;
+      this.cdr.markForCheck();
+      return;
+    }
+
     forkJoin({
       motos: this.api.listMotos(),
       mantenimientos: this.api.listMantenimientos(),
-    }).subscribe({
-      next: ({ motos, mantenimientos }) => {
-        this.primaryMoto = motos[0] ?? null;
-        const mid = this.primaryMoto?.id;
-        this.mantenimientosDeMoto = mid
-          ? mantenimientos
-              .filter((m) => m.moto_id === mid)
-              .sort(
-                (a, b) =>
-                  new Date(b.fecha).getTime() - new Date(a.fecha).getTime(),
-              )
-          : [];
-        this.loading = false;
-        this.cdr.markForCheck();
-      },
-      error: () => {
-        this.error = 'No se pudieron cargar los datos del seguimiento personal.';
-        this.loading = false;
-        this.cdr.markForCheck();
-      },
-    });
+    })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: ({ motos, mantenimientos }) => {
+          this.primaryMoto = motos[0] ?? null;
+          const mid = this.primaryMoto?.id;
+          this.mantenimientosDeMoto = mid
+            ? mantenimientos
+                .filter((m) => m.moto_id === mid)
+                .sort(
+                  (a, b) =>
+                    new Date(b.fecha).getTime() - new Date(a.fecha).getTime(),
+                )
+            : [];
+          this.loading = false;
+          this.cdr.markForCheck();
+        },
+        error: () => {
+          this.error = 'No se pudieron cargar los datos del seguimiento personal.';
+          this.loading = false;
+          this.cdr.markForCheck();
+        },
+      });
   }
 
   prettyState(value: string | undefined): string {

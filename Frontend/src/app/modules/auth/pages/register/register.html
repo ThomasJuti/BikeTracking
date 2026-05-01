@@ -1,0 +1,134 @@
+<div class="auth-wrapper">
+  <div class="auth-bg">
+    <div class="auth-bg-ring auth-bg-ring-1"></div>
+    <div class="auth-bg-ring auth-bg-ring-2"></div>
+    <div class="auth-bg-grid"></div>
+  </div>
+
+  <div class="auth-container">
+    <header class="auth-brand">
+      <div class="auth-brand-icon">
+        <i class="bi bi-speedometer2"></i>
+      </div>
+      <span class="auth-brand-name">BIKETRACKING<span style="color: var(--neon-red)">_</span></span>
+    </header>
+
+    <div class="auth-card">
+      <div class="auth-card-inner">
+        <h1 class="auth-title">Crear cuenta</h1>
+        <p class="auth-subtitle">Registra tus datos para empezar a rastrear tu moto</p>
+
+        @if (error()) {
+          <div class="auth-alert" role="alert" id="register-error">
+            <i class="bi bi-exclamation-triangle-fill"></i>
+            {{ error() }}
+          </div>
+        }
+
+        <form [formGroup]="form" (ngSubmit)="onSubmit()" novalidate id="register-form">
+
+          <!-- Nombre -->
+          <div class="auth-field">
+            <label class="auth-label" for="register-name">Tu nombre</label>
+            <div class="auth-input-wrap">
+              <i class="bi bi-person auth-input-icon"></i>
+              <input
+                id="register-name"
+                type="text"
+                class="auth-input"
+                formControlName="name"
+                placeholder="Ej. Juan Pérez"
+                autocomplete="name"
+              />
+            </div>
+            @if (form.get('name')?.invalid && form.get('name')?.touched) {
+              <span class="auth-field-error">Mínimo 2 caracteres</span>
+            }
+          </div>
+
+          <!-- Email -->
+          <div class="auth-field">
+            <label class="auth-label" for="register-email">Correo electrónico</label>
+            <div class="auth-input-wrap">
+              <i class="bi bi-envelope auth-input-icon"></i>
+              <input
+                id="register-email"
+                type="email"
+                class="auth-input"
+                formControlName="email"
+                placeholder="tu@correo.com"
+                autocomplete="email"
+              />
+            </div>
+            @if (form.get('email')?.invalid && form.get('email')?.touched) {
+              <span class="auth-field-error">Ingresa un correo válido</span>
+            }
+          </div>
+
+          <!-- Contraseña -->
+          <div class="auth-field">
+            <label class="auth-label" for="register-password">Contraseña</label>
+            <div class="auth-input-wrap">
+              <i class="bi bi-lock auth-input-icon"></i>
+              <input
+                id="register-password"
+                [type]="showPassword() ? 'text' : 'password'"
+                class="auth-input auth-input-password"
+                formControlName="password"
+                placeholder="Mínimo 8 caracteres"
+                autocomplete="new-password"
+              />
+              <button
+                type="button"
+                class="auth-toggle-eye"
+                (click)="togglePassword()"
+                [attr.aria-label]="showPassword() ? 'Ocultar' : 'Mostrar'"
+              >
+                <i [class]="showPassword() ? 'bi bi-eye-slash' : 'bi bi-eye'"></i>
+              </button>
+            </div>
+
+            <!-- Indicador de fuerza -->
+            @if (form.get('password')?.value) {
+              <div class="auth-strength">
+                <div class="auth-strength-bar">
+                  <div
+                    class="auth-strength-fill"
+                    [class]="'level-' + passwordStrength()"
+                  ></div>
+                </div>
+                <span class="auth-strength-text">
+                  {{ strengthLabels[passwordStrength()] }}
+                </span>
+              </div>
+            }
+
+            @if (form.get('password')?.invalid && form.get('password')?.touched) {
+              <span class="auth-field-error">Mínimo 8 caracteres</span>
+            }
+          </div>
+
+          <button
+            id="register-submit"
+            type="submit"
+            class="auth-btn"
+            [disabled]="form.invalid || loading()"
+          >
+            @if (loading()) {
+              <span class="auth-spinner"></span>
+              Creando cuenta...
+            } @else {
+              Crear cuenta
+              <i class="bi bi-arrow-right-short"></i>
+            }
+          </button>
+        </form>
+
+        <p class="auth-switch">
+          ¿Ya tienes cuenta?
+          <a routerLink="/auth/login" class="auth-switch-link" id="go-login">Inicia sesión</a>
+        </p>
+      </div>
+    </div>
+  </div>
+</div>

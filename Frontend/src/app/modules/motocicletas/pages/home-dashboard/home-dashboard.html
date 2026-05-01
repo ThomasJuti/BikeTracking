@@ -19,45 +19,45 @@
 } @else {
   <section class="row g-3 mb-4 stats-row" id="stats">
     <div class="col-6 col-md-3">
-      <article class="card h-100 border-0 shadow-sm">
-        <div class="card-body">
-          <p class="text-muted mb-1 small">Mi placa</p>
-          <p class="fs-4 fw-bold text-primary mb-0">
-            {{ primaryMoto?.placa ?? "Sin registro" }}
+      <article class="card h-100">
+        <div class="card-body p-4">
+          <p class="text-muted mb-1 small text-uppercase fw-semibold">Mi placa</p>
+          <p class="fs-3 fw-bold text-primary mb-0" style="font-family: 'Oswald', sans-serif;">
+            {{ primaryMoto?.placa ?? "---" }}
           </p>
         </div>
       </article>
     </div>
     <div class="col-6 col-md-3">
-      <article class="card h-100 border-0 shadow-sm">
-        <div class="card-body">
-          <p class="text-muted mb-1 small">Estado actual</p>
+      <article class="card h-100">
+        <div class="card-body p-4">
+          <p class="text-muted mb-1 small text-uppercase fw-semibold">Estado actual</p>
           <p
-            class="fs-4 fw-bold mb-0"
+            class="fs-3 fw-bold mb-0" style="font-family: 'Oswald', sans-serif;"
             [class.text-success]="primaryMoto?.estado !== 'mantenimiento'"
             [class.text-warning]="primaryMoto?.estado === 'mantenimiento'"
           >
-            {{ prettyState(primaryMoto?.estado) }}
+            {{ prettyState(primaryMoto?.estado) || "---" }}
           </p>
         </div>
       </article>
     </div>
     <div class="col-6 col-md-3">
-      <article class="card h-100 border-0 shadow-sm">
-        <div class="card-body">
-          <p class="text-muted mb-1 small">Servicios guardados</p>
-          <p class="fs-4 fw-bold text-warning mb-0">
+      <article class="card h-100">
+        <div class="card-body p-4">
+          <p class="text-muted mb-1 small text-uppercase fw-semibold">Servicios guardados</p>
+          <p class="fs-3 fw-bold text-warning mb-0" style="font-family: 'Oswald', sans-serif;">
             {{ mantenimientosDeMoto.length }}
           </p>
         </div>
       </article>
     </div>
     <div class="col-6 col-md-3">
-      <article class="card h-100 border-0 shadow-sm">
-        <div class="card-body">
-          <p class="text-muted mb-1 small">Ultimo servicio</p>
-          <p class="fs-4 fw-bold text-secondary mb-0">
-            {{ formatDate(mantenimientosDeMoto[0]?.fecha) }}
+      <article class="card h-100">
+        <div class="card-body p-4">
+          <p class="text-muted mb-1 small text-uppercase fw-semibold">Último servicio</p>
+          <p class="fs-3 fw-bold text-secondary mb-0" style="font-family: 'Oswald', sans-serif;">
+            {{ formatDate(mantenimientosDeMoto[0]?.fecha) || "---" }}
           </p>
         </div>
       </article>
@@ -66,43 +66,41 @@
 
   <section class="mb-4">
     @if (!primaryMoto) {
-      <article class="card border-0 shadow-sm">
-        <div class="card-body p-4">
-          <p class="text-uppercase tracking fw-semibold mb-2 text-muted">
+      <article class="card">
+        <div class="card-body p-5 text-center">
+          <p class="tracking mb-3">
             Primer paso
           </p>
-          <h2 class="fs-4 fw-bold mb-2">Todavia no has registrado tu moto</h2>
+          <h2 class="fs-3 fw-bold mb-3 text-white">Todavía no has registrado tu moto</h2>
           <p class="text-muted mb-0">
-            Crea la ficha de tu vehiculo personal para empezar a registrar
-            revisiones y mantenimientos.
+            Crea la ficha de tu vehiculo personal para empezar a registrar revisiones y mantenimientos.
           </p>
         </div>
       </article>
     } @else {
-      <article class="card border-0 shadow-sm">
+      <article class="card border-0">
         <div class="card-body p-4 p-md-5">
-          <div class="row g-3 align-items-center">
+          <div class="row g-4 align-items-center">
             <div class="col-12 col-lg-8">
-              <p class="text-uppercase tracking fw-semibold mb-2 text-muted">
-                Vehiculo principal
+              <p class="tracking mb-2">
+                Vehículo principal
               </p>
-              <h2 class="fs-3 fw-bold mb-2">
-                {{ primaryMoto.marca }} {{ primaryMoto.modelo }}
+              <h2 class="fs-2 fw-bold mb-2 text-white" style="letter-spacing: 0.05em;">
+                {{ primaryMoto.marca }} <span class="text-primary">{{ primaryMoto.modelo }}</span>
               </h2>
-              <p class="text-muted mb-0">
-                Placa {{ primaryMoto.placa }} · {{ primaryMoto.cilindraje }} ·
-                Propietario {{ primaryMoto.propietario }}
+              <p class="text-muted mb-0 fs-5">
+                Placa {{ primaryMoto.placa }} · Cilindraje {{ primaryMoto.cilindraje }} · Propietario {{ primaryMoto.propietario }}
               </p>
             </div>
             <div class="col-12 col-lg-4">
-              <div class="rounded-4 p-3 bg-light border">
-                <p class="text-muted mb-1 small">Historial personal</p>
-                <p class="fs-4 fw-bold mb-1">
-                  {{ mantenimientosDeMoto.length }} registros
+              <div class="p-4 border bg-dark">
+                <p class="tracking">Historial personal</p>
+                <p class="display-5 fw-bold mb-1 text-white" style="font-family: 'Oswald', sans-serif;">
+                  {{ mantenimientosDeMoto.length }} <span class="fs-6 text-muted">registros</span>
                 </p>
-                <p class="text-muted small mb-0">
-                  Ultima fecha:
-                  {{ formatDate(mantenimientosDeMoto[0]?.fecha) }}
+                <p class="text-muted small mb-0 fw-semibold text-uppercase">
+                  Última fecha:
+                  <span class="text-secondary">{{ formatDate(mantenimientosDeMoto[0]?.fecha) || "N/A" }}</span>
                 </p>
               </div>
             </div>
@@ -117,16 +115,15 @@
     <div class="row g-3">
       <div class="col-12 col-md-6">
         <a routerLink="/mi-moto" class="text-decoration-none">
-          <article class="card h-100 access-card border-0 shadow-sm">
-            <div class="card-body p-4 d-flex align-items-start gap-3">
-              <div class="access-icon bg-primary bg-opacity-10 text-primary">
-                <i class="bi bi-bicycle fs-3"></i>
+          <article class="card h-100 access-card">
+            <div class="card-body p-4 p-md-5 d-flex align-items-center gap-4">
+              <div class="access-icon">
+                <i class="bi bi-rocket-takeoff"></i>
               </div>
               <div>
-                <h3 class="fs-5 fw-bold mb-1 text-body">Datos de mi moto</h3>
-                <p class="text-muted mb-0 small">
-                  Consulta y actualiza la informacion principal de tu vehiculo
-                  personal.
+                <h3 class="fs-4 fw-bold mb-1 text-white" style="letter-spacing: 0.05em; font-family: 'Oswald', sans-serif;">DATOS DE MI MOTO</h3>
+                <p class="text-muted mb-0" style="font-weight: 500;">
+                  Consulta y actualiza la información principal.
                 </p>
               </div>
             </div>
@@ -135,18 +132,15 @@
       </div>
       <div class="col-12 col-md-6">
         <a routerLink="/mantenimiento" class="text-decoration-none">
-          <article class="card h-100 access-card border-0 shadow-sm">
-            <div class="card-body p-4 d-flex align-items-start gap-3">
-              <div class="access-icon bg-warning bg-opacity-10 text-warning">
-                <i class="bi bi-tools fs-3"></i>
+          <article class="card h-100 access-card">
+            <div class="card-body p-4 p-md-5 d-flex align-items-center gap-4">
+              <div class="access-icon" style="color: var(--neon-yellow) !important; border-color: var(--neon-yellow);">
+                <i class="bi bi-wrench-adjustable-circle"></i>
               </div>
               <div>
-                <h3 class="fs-5 fw-bold mb-1 text-body">
-                  Mantenimiento personal
-                </h3>
-                <p class="text-muted mb-0 small">
-                  Guarda servicios, revisiones y trabajos realizados sobre tu
-                  moto.
+                <h3 class="fs-4 fw-bold mb-1 text-white" style="letter-spacing: 0.05em; font-family: 'Oswald', sans-serif;">MANTENIMIENTO PERSONAL</h3>
+                <p class="text-muted mb-0" style="font-weight: 500;">
+                  Guarda servicios, revisiones y trabajos.
                 </p>
               </div>
             </div>

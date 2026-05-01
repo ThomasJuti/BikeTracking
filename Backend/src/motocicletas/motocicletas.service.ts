@@ -272,6 +272,9 @@ export class MotocicletasService {
   async deleteMoto(id: string): Promise<void> {
     try {
       const pool = this.mysqlService.getPool();
+      // Eliminar registros de mantenimientos asociados para evitar error de clave foránea
+      await pool.query('DELETE FROM mantenimientos WHERE moto_id = ?', [id]);
+      
       const [result] = await pool.query<ResultSetHeader>(
         'DELETE FROM motos WHERE id = ?',
         [id],

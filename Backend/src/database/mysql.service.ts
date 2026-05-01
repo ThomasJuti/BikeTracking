@@ -46,6 +46,16 @@ export class MysqlService implements OnModuleInit, OnModuleDestroy {
 
   private async createSchema(): Promise<void> {
     await this.pool.query(`
+      CREATE TABLE IF NOT EXISTS users (
+        id CHAR(36) NOT NULL PRIMARY KEY,
+        email VARCHAR(100) NOT NULL UNIQUE,
+        password_hash VARCHAR(255) NOT NULL,
+        name VARCHAR(100),
+        created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+      ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+    `);
+
+    await this.pool.query(`
       CREATE TABLE IF NOT EXISTS motos (
         id CHAR(36) NOT NULL PRIMARY KEY,
         placa VARCHAR(10) NOT NULL UNIQUE,
