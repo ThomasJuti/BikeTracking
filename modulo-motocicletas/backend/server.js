@@ -2,13 +2,18 @@ const express = require("express");
 const cors = require("cors");
 const fs = require("fs/promises");
 const path = require("path");
+const crypto = require("crypto");
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 const DATA_DIR = path.join(__dirname, "data");
 const DATA_FILE = path.join(DATA_DIR, "motos.json");
 const MANTENIMIENTOS_FILE = path.join(DATA_DIR, "mantenimientos.json");
+const USERS_FILE = path.join(DATA_DIR, "users.json");
 const FRONTEND_DIR = path.join(__dirname, "..", "frontend");
+
+// Sesiones en memoria: token -> { userId, username }
+const sessions = new Map();
 
 app.use(cors());
 app.use(express.json());
@@ -27,6 +32,43 @@ async function ensureDataFile() {
   } catch {
     await fs.writeFile(MANTENIMIENTOS_FILE, "[]", "utf8");
   }
+
+  try {
+    await fs.access(USERS_FILE);
+  } catch {
+    await fs.writeFile(USERS_FILE, "[]", "utf8");
+  }
+}
+
+async function readUsers() {
+  const raw = await fs.readFile(USERS_FILE, "utf8");
+  return JSON.parse(raw);
+}
+
+async function writeUsers(users) {
+  await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2), "utf8");
+}
+
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto.scryptSync(password, salt, 64).toString("hex");
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password, stored) {
+  const [salt, hash] = stored.split(":");
+  const verifyHash = crypto.scryptSync(password, salt, 64).toString("hex");
+  return crypto.timingSafeEqual(Buffer.from(verifyHash, "hex"), Buffer.from(hash, "hex"));
+}
+
+function requireAuth(req, res, next) {
+  const auth = req.headers.authorization || "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
+  if (!token || !sessions.has(token)) {
+    return res.status(401).json({ message: "No autorizado. Inicia sesion." });
+  }
+  req.user = sessions.get(token);
+  next();
 }
 
 async function readMotos() {
@@ -83,7 +125,73 @@ app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "modulo-motocicletas" });
 });
 
-app.get("/api/motos", async (req, res) => {
+// ─── Auth endpoints ────────────────────────────────────────────────────────
+
+app.post("/api/auth/register", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || typeof username !== "string" || username.trim().length < 3) {
+      return res.status(400).json({ message: "El usuario debe tener al menos 3 caracteres." });
+    }
+    if (!password || typeof password !== "string" || password.length < 6) {
+      return res.status(400).json({ message: "La contrasena debe tener al menos 6 caracteres." });
+    }
+
+    const users = await readUsers();
+    const exists = users.some((u) => u.username.toLowerCase() === username.trim().toLowerCase());
+    if (exists) {
+      return res.status(409).json({ message: "El nombre de usuario ya esta en uso." });
+    }
+
+    const newUser = {
+      id: crypto.randomBytes(12).toString("hex"),
+      username: username.trim(),
+      password: hashPassword(password),
+      createdAt: new Date().toISOString()
+    };
+
+    users.push(newUser);
+    await writeUsers(users);
+    res.status(201).json({ message: "Usuario registrado correctamente." });
+  } catch {
+    res.status(500).json({ message: "Error al registrar el usuario." });
+  }
+});
+
+app.post("/api/auth/login", async (req, res) => {
+  try {
+    const { username, password } = req.body;
+
+    if (!username || !password) {
+      return res.status(400).json({ message: "Usuario y contrasena son obligatorios." });
+    }
+
+    const users = await readUsers();
+    const user = users.find((u) => u.username.toLowerCase() === String(username).trim().toLowerCase());
+
+    if (!user || !verifyPassword(String(password), user.password)) {
+      return res.status(401).json({ message: "Usuario o contrasena incorrectos." });
+    }
+
+    const token = crypto.randomBytes(32).toString("hex");
+    sessions.set(token, { userId: user.id, username: user.username });
+    res.json({ token, username: user.username });
+  } catch {
+    res.status(500).json({ message: "Error al iniciar sesion." });
+  }
+});
+
+app.post("/api/auth/logout", (req, res) => {
+  const auth = req.headers.authorization || "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
+  if (token) sessions.delete(token);
+  res.json({ message: "Sesion cerrada." });
+});
+
+// ─── Motos ─────────────────────────────────────────────────────────────────
+
+app.get("/api/motos", requireAuth, async (req, res) => {
   try {
     const { q = "", estado = "" } = req.query;
     let motos = await readMotos();
@@ -108,7 +216,7 @@ app.get("/api/motos", async (req, res) => {
   }
 });
 
-app.get("/api/motos/:id", async (req, res) => {
+app.get("/api/motos/:id", requireAuth, async (req, res) => {
   try {
     const motos = await readMotos();
     const moto = motos.find((m) => m.id === req.params.id);
@@ -123,7 +231,7 @@ app.get("/api/motos/:id", async (req, res) => {
   }
 });
 
-app.post("/api/motos", async (req, res) => {
+app.post("/api/motos", requireAuth, async (req, res) => {
   try {
     const motos = await readMotos();
     const payload = req.body;
@@ -153,7 +261,7 @@ app.post("/api/motos", async (req, res) => {
   }
 });
 
-app.put("/api/motos/:id", async (req, res) => {
+app.put("/api/motos/:id", requireAuth, async (req, res) => {
   try {
     const motos = await readMotos();
     const index = motos.findIndex((m) => m.id === req.params.id);
@@ -188,7 +296,7 @@ app.put("/api/motos/:id", async (req, res) => {
   }
 });
 
-app.delete("/api/motos/:id", async (req, res) => {
+app.delete("/api/motos/:id", requireAuth, async (req, res) => {
   try {
     const motos = await readMotos();
     const index = motos.findIndex((m) => m.id === req.params.id);
@@ -205,7 +313,7 @@ app.delete("/api/motos/:id", async (req, res) => {
   }
 });
 
-app.get("/api/mantenimientos", async (_req, res) => {
+app.get("/api/mantenimientos", requireAuth, async (_req, res) => {
   try {
     const raw = await fs.readFile(MANTENIMIENTOS_FILE, "utf8");
     res.json(JSON.parse(raw));
@@ -214,7 +322,7 @@ app.get("/api/mantenimientos", async (_req, res) => {
   }
 });
 
-app.post("/api/mantenimientos", async (req, res) => {
+app.post("/api/mantenimientos", requireAuth, async (req, res) => {
   try {
     const payload = req.body;
     const errors = [];

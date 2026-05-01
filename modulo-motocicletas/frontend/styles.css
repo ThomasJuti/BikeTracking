@@ -171,3 +171,38 @@ body {
     font-size: 1.65rem;
   }
 }
+
+/* ─── Login page ─────────────────────────────────────────────────────────── */
+.login-brand-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: rgba(10, 102, 194, 0.12);
+  color: var(--brand);
+}
+
+.nav-pills .nav-link {
+  border-radius: 0.6rem;
+  color: var(--muted);
+}
+
+.nav-pills .nav-link.active {
+  background-color: var(--brand);
+  color: #fff;
+}
+
+.input-group-text {
+  border-right: none;
+}
+
+.input-group .form-control {
+  border-left: none;
+}
+
+.input-group .form-control:focus {
+  border-color: #ced4da;
+  box-shadow: none;
+}

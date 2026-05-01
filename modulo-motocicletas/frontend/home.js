@@ -1,3 +1,7 @@
+// ─── Auth guard ────────────────────────────────────────────────────────────
+const _token = sessionStorage.getItem("bt_token");
+if (!_token) window.location.replace("/login.html");
+
 const statsContainer = document.getElementById("stats");
 const summaryContainer = document.getElementById("homeSummary");
 
@@ -103,9 +107,10 @@ function renderSummary(primaryMoto, mantenimientos) {
 
 (async function init() {
   try {
+    const authHeader = { "Authorization": `Bearer ${sessionStorage.getItem("bt_token")}` };
     const [motosRes, mantenimientosRes] = await Promise.all([
-      fetch("/api/motos"),
-      fetch("/api/mantenimientos")
+      fetch("/api/motos", { headers: authHeader }),
+      fetch("/api/mantenimientos", { headers: authHeader })
     ]);
 
     if (!motosRes.ok || !mantenimientosRes.ok) {
@@ -136,3 +141,21 @@ function renderSummary(primaryMoto, mantenimientos) {
     summaryContainer.innerHTML = "";
   }
 })();
+
+// ─── Header: usuario y logout ──────────────────────────────────────────────
+const headerUser = document.getElementById("headerUser");
+if (headerUser) {
+  headerUser.textContent = sessionStorage.getItem("bt_username") || "";
+}
+
+document.getElementById("btnLogout").addEventListener("click", async () => {
+  const token = sessionStorage.getItem("bt_token");
+  if (token) {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${token}` }
+    }).catch(() => {});
+  }
+  sessionStorage.clear();
+  window.location.replace("/login.html");
+});

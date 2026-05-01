@@ -1,3 +1,7 @@
+// ─── Auth guard ────────────────────────────────────────────────────────────
+const _token = sessionStorage.getItem("bt_token");
+if (!_token) window.location.replace("/login.html");
+
 const alerta = document.getElementById("alerta");
 const form = document.getElementById("formMantenimiento");
 const motoSelect = document.getElementById("motoId");
@@ -73,7 +77,9 @@ function validate() {
 
 async function loadMotos() {
   try {
-    const res = await fetch("/api/motos");
+    const res = await fetch("/api/motos", {
+      headers: { "Authorization": `Bearer ${sessionStorage.getItem("bt_token")}` }
+    });
     if (!res.ok) throw new Error();
     const motos = await res.json();
 
@@ -122,7 +128,10 @@ form.addEventListener("submit", async (e) => {
   try {
     const res = await fetch("/api/mantenimientos", {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${sessionStorage.getItem("bt_token")}`
+      },
       body: JSON.stringify(payload)
     });
 
@@ -147,3 +156,16 @@ document.getElementById("btnLimpiar").addEventListener("click", () => {
 });
 
 loadMotos();
+
+// ─── Logout ────────────────────────────────────────────────────────────────
+document.getElementById("btnLogout").addEventListener("click", async () => {
+  const token = sessionStorage.getItem("bt_token");
+  if (token) {
+    await fetch("/api/auth/logout", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${token}` }
+    }).catch(() => {});
+  }
+  sessionStorage.clear();
+  window.location.replace("/login.html");
+});
