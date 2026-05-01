@@ -1,10 +1,12 @@
 :root {
-  --bg: #eef3f8;
-  --text: #102033;
-  --muted: #5d6c7d;
-  --line: #d7e0e8;
-  --brand: #0a66c2;
-  --brand-2: #00a896;
+  --bg: #0d1b2a;
+  --surface: #122236;
+  --surface-2: #1a2f47;
+  --text: #dce8f5;
+  --muted: #7a9bb8;
+  --line: #1f3655;
+  --brand: #3b9eff;
+  --brand-2: #00c4b0;
 }
 
 * {
@@ -14,8 +16,8 @@
 body {
   margin: 0;
   background:
-    radial-gradient(circle at 10% 10%, rgba(10, 102, 194, 0.12), transparent 40%),
-    radial-gradient(circle at 90% 20%, rgba(0, 168, 150, 0.14), transparent 44%),
+    radial-gradient(circle at 10% 10%, rgba(59, 158, 255, 0.18), transparent 40%),
+    radial-gradient(circle at 90% 20%, rgba(0, 196, 176, 0.16), transparent 44%),
     var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -32,7 +34,7 @@ body {
 .bg-shape-1 {
   width: 260px;
   height: 260px;
-  background: rgba(10, 102, 194, 0.2);
+  background: rgba(59, 158, 255, 0.25);
   top: -60px;
   left: -70px;
 }
@@ -40,13 +42,13 @@ body {
 .bg-shape-2 {
   width: 340px;
   height: 340px;
-  background: rgba(0, 168, 150, 0.2);
+  background: rgba(0, 196, 176, 0.22);
   bottom: -120px;
   right: -100px;
 }
 
 .hero {
-  background: linear-gradient(135deg, #ffffff, #f9fcff);
+  background: linear-gradient(135deg, var(--surface), var(--surface-2));
   border: 1px solid var(--line);
   animation: riseIn 380ms ease-out;
 }
@@ -60,16 +62,27 @@ body {
 #stats .card {
   border: 1px solid var(--line);
   animation: riseIn 520ms ease-out;
+  background: var(--surface) !important;
+  color: var(--text) !important;
+}
+
+.table {
+  color: var(--text);
 }
 
 .table thead th {
-  color: #25374a;
+  color: var(--brand);
   font-weight: 700;
   border-bottom-color: var(--line);
+  background: var(--surface);
 }
 
 .table td {
-  border-color: #e7eef5;
+  border-color: var(--line);
+}
+
+.table-hover tbody tr:hover td {
+  background: rgba(59, 158, 255, 0.07);
 }
 
 .badge-state {
@@ -89,21 +102,27 @@ body {
 
 .card {
   border-radius: 1rem;
+  background: var(--surface);
+  color: var(--text);
+  border-color: var(--line);
 }
 
 .modal-content {
   border: none;
   border-radius: 1rem;
+  background: var(--surface-2);
+  color: var(--text);
 }
 
 .access-card {
   border: 1px solid var(--line) !important;
+  background: var(--surface-2) !important;
   transition: transform 160ms ease, box-shadow 160ms ease;
 }
 
 .access-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 24px rgba(10, 102, 194, 0.12) !important;
+  box-shadow: 0 8px 28px rgba(59, 158, 255, 0.2) !important;
 }
 
 .access-icon {
@@ -117,13 +136,13 @@ body {
 }
 
 .vehicle-profile-card {
-  background: linear-gradient(135deg, #ffffff, #f6fbff);
+  background: linear-gradient(135deg, var(--surface), var(--surface-2));
   border: 1px solid var(--line);
 }
 
 .profile-detail {
-  background: rgba(255, 255, 255, 0.8);
-  border: 1px solid #dde7ef;
+  background: rgba(18, 34, 54, 0.85);
+  border: 1px solid var(--line);
   border-radius: 1rem;
   padding: 1rem;
 }
@@ -140,8 +159,8 @@ body {
 }
 
 .empty-profile {
-  background: linear-gradient(135deg, #ffffff, #f7fbff);
-  border: 1px dashed #bfd0e2;
+  background: linear-gradient(135deg, var(--surface), var(--surface-2));
+  border: 1px dashed var(--line);
 }
 
 .empty-profile-icon {
@@ -151,7 +170,7 @@ body {
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: rgba(10, 102, 194, 0.1);
+  background: rgba(59, 158, 255, 0.15);
   color: var(--brand);
 }
 
@@ -172,7 +191,47 @@ body {
   }
 }
 
-/* ─── Login page ─────────────────────────────────────────────────────────── */
+/* ─── Dark overrides Bootstrap ───────────────────────────────────────── */
+.form-control,
+.form-select {
+  background-color: var(--surface-2);
+  border-color: var(--line);
+  color: var(--text);
+}
+
+.form-control:focus,
+.form-select:focus {
+  background-color: var(--surface-2);
+  border-color: var(--brand);
+  color: var(--text);
+  box-shadow: 0 0 0 3px rgba(59, 158, 255, 0.2);
+}
+
+.form-control::placeholder {
+  color: var(--muted);
+}
+
+.form-label {
+  color: var(--muted);
+}
+
+.modal-header,
+.modal-footer {
+  border-color: var(--line);
+}
+
+.btn-outline-secondary {
+  color: var(--muted);
+  border-color: var(--line);
+}
+
+.btn-outline-secondary:hover {
+  background: var(--line);
+  color: var(--text);
+  border-color: var(--line);
+}
+
+/* ─── Login page ─────────────────────────────────────────────────────── */
 .login-brand-icon {
   display: flex;
   align-items: center;
@@ -180,7 +239,7 @@ body {
   width: 72px;
   height: 72px;
   border-radius: 50%;
-  background: rgba(10, 102, 194, 0.12);
+  background: rgba(59, 158, 255, 0.15);
   color: var(--brand);
 }
 
@@ -189,12 +248,20 @@ body {
   color: var(--muted);
 }
 
+.nav-pills .nav-link:hover {
+  color: var(--text);
+  background: var(--line);
+}
+
 .nav-pills .nav-link.active {
   background-color: var(--brand);
   color: #fff;
 }
 
 .input-group-text {
+  background-color: var(--surface-2);
+  border-color: var(--line);
+  color: var(--muted);
   border-right: none;
 }
 
@@ -203,6 +270,6 @@ body {
 }
 
 .input-group .form-control:focus {
-  border-color: #ced4da;
+  border-color: var(--brand);
   box-shadow: none;
 }

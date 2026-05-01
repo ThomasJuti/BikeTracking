@@ -1,4 +1,4 @@
-// ─── Auth guard ────────────────────────────────────────────────────────────
+// Guard de autenticacion
 const _token = sessionStorage.getItem("bt_token");
 if (!_token) window.location.replace("/login.html");
 
@@ -77,9 +77,9 @@ function validate() {
 
 async function loadMotos() {
   try {
-    const res = await fetch("/api/motos", {
-      headers: { "Authorization": `Bearer ${sessionStorage.getItem("bt_token")}` }
-    });
+    const token = sessionStorage.getItem("bt_token");
+    const res = await fetch("/api/motos", { headers: { "Authorization": `Bearer ${token}` } });
+    if (res.status === 401) { sessionStorage.clear(); window.location.replace("/login.html"); return; }
     if (!res.ok) throw new Error();
     const motos = await res.json();
 
@@ -126,12 +126,10 @@ form.addEventListener("submit", async (e) => {
   };
 
   try {
+    const token = sessionStorage.getItem("bt_token");
     const res = await fetch("/api/mantenimientos", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${sessionStorage.getItem("bt_token")}`
-      },
+      headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
       body: JSON.stringify(payload)
     });
 
@@ -157,15 +155,10 @@ document.getElementById("btnLimpiar").addEventListener("click", () => {
 
 loadMotos();
 
-// ─── Logout ────────────────────────────────────────────────────────────────
-document.getElementById("btnLogout").addEventListener("click", async () => {
+// Logout
+document.getElementById("btnLogout")?.addEventListener("click", async () => {
   const token = sessionStorage.getItem("bt_token");
-  if (token) {
-    await fetch("/api/auth/logout", {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${token}` }
-    }).catch(() => {});
-  }
+  await fetch("/api/auth/logout", { method: "POST", headers: { "Authorization": `Bearer ${token}` } }).catch(() => {});
   sessionStorage.clear();
   window.location.replace("/login.html");
 });

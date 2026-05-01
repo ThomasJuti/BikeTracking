@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es">
+<html lang="es" data-bs-theme="dark">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -27,16 +27,20 @@
     <main class="container py-4 py-md-5">
       <header class="hero card border-0 shadow-lg mb-4">
         <div class="card-body p-4 p-md-5">
-          <p class="text-uppercase fw-semibold mb-2 tracking">Seguimiento personal</p>
-          <h1 class="display-6 fw-bold mb-2">Mi moto en un vistazo</h1>
-          <p class="text-muted m-0">
-            Revisa el estado actual de tu vehiculo, sus datos principales y el historial de cuidado.
-          </p>
-          <div class="d-flex align-items-center gap-2 mt-3 mt-md-0">
-            <span class="text-muted small" id="headerUser"></span>
-            <button class="btn btn-outline-danger btn-sm" id="btnLogout">
-              <i class="bi bi-box-arrow-right"></i> Salir
-            </button>
+          <div class="d-flex flex-column flex-md-row justify-content-between align-items-start gap-3">
+            <div>
+              <p class="text-uppercase fw-semibold mb-2 tracking">Seguimiento personal</p>
+              <h1 class="display-6 fw-bold mb-2">Mi moto en un vistazo</h1>
+              <p class="text-muted m-0">
+                Revisa el estado actual de tu vehiculo, sus datos principales y el historial de cuidado.
+              </p>
+            </div>
+            <div class="d-flex align-items-center gap-2">
+              <span class="text-muted small" id="headerUser"></span>
+              <button class="btn btn-outline-danger btn-sm" id="btnLogout">
+                <i class="bi bi-box-arrow-right"></i> Salir
+              </button>
+            </div>
           </div>
         </div>
       </header>

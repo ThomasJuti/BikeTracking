@@ -1,4 +1,4 @@
-// ─── Auth guard ────────────────────────────────────────────────────────────
+// Guard de autenticacion
 const _token = sessionStorage.getItem("bt_token");
 if (!_token) window.location.replace("/login.html");
 
@@ -184,20 +184,19 @@ function render() {
 }
 
 async function request(url, options = {}) {
+  const token = sessionStorage.getItem("bt_token");
   const response = await fetch(url, {
-    headers: {
-      "Content-Type": "application/json",
-      "Authorization": `Bearer ${sessionStorage.getItem("bt_token")}`
-    },
+    headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
     ...options
   });
 
+  if (response.status === 401) {
+    sessionStorage.clear();
+    window.location.replace("/login.html");
+    return;
+  }
+
   if (!response.ok) {
-    if (response.status === 401) {
-      sessionStorage.clear();
-      window.location.replace("/login.html");
-      return;
-    }
     let message = "Ocurrio un error en la solicitud.";
     try {
       const data = await response.json();
@@ -315,15 +314,10 @@ ui.form.addEventListener("submit", async (event) => {
   }
 })();
 
-// ─── Logout ────────────────────────────────────────────────────────────────
-document.getElementById("btnLogout").addEventListener("click", async () => {
+// Logout
+document.getElementById("btnLogout")?.addEventListener("click", async () => {
   const token = sessionStorage.getItem("bt_token");
-  if (token) {
-    await fetch("/api/auth/logout", {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${token}` }
-    }).catch(() => {});
-  }
+  await fetch("/api/auth/logout", { method: "POST", headers: { "Authorization": `Bearer ${token}` } }).catch(() => {});
   sessionStorage.clear();
   window.location.replace("/login.html");
 });

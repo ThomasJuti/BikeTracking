@@ -1,4 +1,4 @@
-// ─── Auth guard ────────────────────────────────────────────────────────────
+// Guard de autenticacion
 const _token = sessionStorage.getItem("bt_token");
 if (!_token) window.location.replace("/login.html");
 
@@ -107,11 +107,18 @@ function renderSummary(primaryMoto, mantenimientos) {
 
 (async function init() {
   try {
-    const authHeader = { "Authorization": `Bearer ${sessionStorage.getItem("bt_token")}` };
+    const token = sessionStorage.getItem("bt_token");
+    const headers = { "Authorization": `Bearer ${token}` };
     const [motosRes, mantenimientosRes] = await Promise.all([
-      fetch("/api/motos", { headers: authHeader }),
-      fetch("/api/mantenimientos", { headers: authHeader })
+      fetch("/api/motos", { headers }),
+      fetch("/api/mantenimientos", { headers })
     ]);
+
+    if (motosRes.status === 401 || mantenimientosRes.status === 401) {
+      sessionStorage.clear();
+      window.location.replace("/login.html");
+      return;
+    }
 
     if (!motosRes.ok || !mantenimientosRes.ok) {
       throw new Error("No se pudieron cargar los datos principales.");
@@ -128,6 +135,9 @@ function renderSummary(primaryMoto, mantenimientos) {
 
     renderStats(primaryMoto, motoMantenimientos);
     renderSummary(primaryMoto, motoMantenimientos);
+
+    const headerUser = document.getElementById("headerUser");
+    if (headerUser) headerUser.textContent = sessionStorage.getItem("bt_username") || "";
   } catch {
     statsContainer.innerHTML = `
       <div class="col-12">
@@ -142,20 +152,10 @@ function renderSummary(primaryMoto, mantenimientos) {
   }
 })();
 
-// ─── Header: usuario y logout ──────────────────────────────────────────────
-const headerUser = document.getElementById("headerUser");
-if (headerUser) {
-  headerUser.textContent = sessionStorage.getItem("bt_username") || "";
-}
-
-document.getElementById("btnLogout").addEventListener("click", async () => {
+// Logout
+document.getElementById("btnLogout")?.addEventListener("click", async () => {
   const token = sessionStorage.getItem("bt_token");
-  if (token) {
-    await fetch("/api/auth/logout", {
-      method: "POST",
-      headers: { "Authorization": `Bearer ${token}` }
-    }).catch(() => {});
-  }
+  await fetch("/api/auth/logout", { method: "POST", headers: { "Authorization": `Bearer ${token}` } }).catch(() => {});
   sessionStorage.clear();
   window.location.replace("/login.html");
 });

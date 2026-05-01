@@ -18,6 +18,46 @@ const sessions = new Map();
 app.use(cors());
 app.use(express.json());
 
+// ── Auth helpers ────────────────────────────────────────────────────────────
+
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto.scryptSync(password, salt, 64).toString("hex");
+  return `${salt}:${hash}`;
+}
+
+function verifyPassword(password, stored) {
+  const [salt, hash] = stored.split(":");
+  const hashBuf = Buffer.from(hash, "hex");
+  const derived = crypto.scryptSync(password, salt, 64);
+  return crypto.timingSafeEqual(hashBuf, derived);
+}
+
+function requireAuth(req, res, next) {
+  const auth = req.headers["authorization"] || "";
+  const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
+  if (!token || !sessions.has(token)) {
+    return res.status(401).json({ message: "No autenticado." });
+  }
+  req.session = sessions.get(token);
+  next();
+}
+
+// ── User helpers ─────────────────────────────────────────────────────────────
+
+async function readUsers() {
+  try {
+    const raw = await fs.readFile(USERS_FILE, "utf8");
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+async function writeUsers(users) {
+  await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2), "utf8");
+}
+
 async function ensureDataFile() {
   await fs.mkdir(DATA_DIR, { recursive: true });
 
@@ -32,43 +72,6 @@ async function ensureDataFile() {
   } catch {
     await fs.writeFile(MANTENIMIENTOS_FILE, "[]", "utf8");
   }
-
-  try {
-    await fs.access(USERS_FILE);
-  } catch {
-    await fs.writeFile(USERS_FILE, "[]", "utf8");
-  }
-}
-
-async function readUsers() {
-  const raw = await fs.readFile(USERS_FILE, "utf8");
-  return JSON.parse(raw);
-}
-
-async function writeUsers(users) {
-  await fs.writeFile(USERS_FILE, JSON.stringify(users, null, 2), "utf8");
-}
-
-function hashPassword(password) {
-  const salt = crypto.randomBytes(16).toString("hex");
-  const hash = crypto.scryptSync(password, salt, 64).toString("hex");
-  return `${salt}:${hash}`;
-}
-
-function verifyPassword(password, stored) {
-  const [salt, hash] = stored.split(":");
-  const verifyHash = crypto.scryptSync(password, salt, 64).toString("hex");
-  return crypto.timingSafeEqual(Buffer.from(verifyHash, "hex"), Buffer.from(hash, "hex"));
-}
-
-function requireAuth(req, res, next) {
-  const auth = req.headers.authorization || "";
-  const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
-  if (!token || !sessions.has(token)) {
-    return res.status(401).json({ message: "No autorizado. Inicia sesion." });
-  }
-  req.user = sessions.get(token);
-  next();
 }
 
 async function readMotos() {
@@ -125,71 +128,54 @@ app.get("/api/health", (_req, res) => {
   res.json({ ok: true, service: "modulo-motocicletas" });
 });
 
-// ─── Auth endpoints ────────────────────────────────────────────────────────
+// ── Auth endpoints ──────────────────────────────────────────────────────────
 
 app.post("/api/auth/register", async (req, res) => {
-  try {
-    const { username, password } = req.body;
-
-    if (!username || typeof username !== "string" || username.trim().length < 3) {
-      return res.status(400).json({ message: "El usuario debe tener al menos 3 caracteres." });
-    }
-    if (!password || typeof password !== "string" || password.length < 6) {
-      return res.status(400).json({ message: "La contrasena debe tener al menos 6 caracteres." });
-    }
-
-    const users = await readUsers();
-    const exists = users.some((u) => u.username.toLowerCase() === username.trim().toLowerCase());
-    if (exists) {
-      return res.status(409).json({ message: "El nombre de usuario ya esta en uso." });
-    }
-
-    const newUser = {
-      id: crypto.randomBytes(12).toString("hex"),
-      username: username.trim(),
-      password: hashPassword(password),
-      createdAt: new Date().toISOString()
-    };
-
-    users.push(newUser);
-    await writeUsers(users);
-    res.status(201).json({ message: "Usuario registrado correctamente." });
-  } catch {
-    res.status(500).json({ message: "Error al registrar el usuario." });
+  const { username, password } = req.body || {};
+  if (!username || username.trim().length < 3) {
+    return res.status(400).json({ message: "El usuario debe tener al menos 3 caracteres." });
   }
+  if (!password || password.length < 6) {
+    return res.status(400).json({ message: "La contrasena debe tener al menos 6 caracteres." });
+  }
+  const users = await readUsers();
+  if (users.find((u) => u.username.toLowerCase() === username.trim().toLowerCase())) {
+    return res.status(409).json({ message: "El usuario ya existe." });
+  }
+  const newUser = {
+    id: crypto.randomBytes(12).toString("hex"),
+    username: username.trim(),
+    password: hashPassword(password),
+    createdAt: new Date().toISOString()
+  };
+  users.push(newUser);
+  await writeUsers(users);
+  res.status(201).json({ message: "Usuario creado.", username: newUser.username });
 });
 
 app.post("/api/auth/login", async (req, res) => {
-  try {
-    const { username, password } = req.body;
-
-    if (!username || !password) {
-      return res.status(400).json({ message: "Usuario y contrasena son obligatorios." });
-    }
-
-    const users = await readUsers();
-    const user = users.find((u) => u.username.toLowerCase() === String(username).trim().toLowerCase());
-
-    if (!user || !verifyPassword(String(password), user.password)) {
-      return res.status(401).json({ message: "Usuario o contrasena incorrectos." });
-    }
-
-    const token = crypto.randomBytes(32).toString("hex");
-    sessions.set(token, { userId: user.id, username: user.username });
-    res.json({ token, username: user.username });
-  } catch {
-    res.status(500).json({ message: "Error al iniciar sesion." });
+  const { username, password } = req.body || {};
+  if (!username || !password) {
+    return res.status(400).json({ message: "Usuario y contrasena requeridos." });
   }
+  const users = await readUsers();
+  const user = users.find((u) => u.username.toLowerCase() === username.trim().toLowerCase());
+  if (!user || !verifyPassword(password, user.password)) {
+    return res.status(401).json({ message: "Usuario o contrasena incorrectos." });
+  }
+  const token = crypto.randomBytes(32).toString("hex");
+  sessions.set(token, { userId: user.id, username: user.username });
+  res.json({ token, username: user.username });
 });
 
 app.post("/api/auth/logout", (req, res) => {
-  const auth = req.headers.authorization || "";
+  const auth = req.headers["authorization"] || "";
   const token = auth.startsWith("Bearer ") ? auth.slice(7) : null;
   if (token) sessions.delete(token);
   res.json({ message: "Sesion cerrada." });
 });
 
-// ─── Motos ─────────────────────────────────────────────────────────────────
+// ── Motos endpoints (protegidos) ─────────────────────────────────────────────
 
 app.get("/api/motos", requireAuth, async (req, res) => {
   try {
@@ -394,8 +380,15 @@ app.post("/api/mantenimientos", requireAuth, async (req, res) => {
 app.use(express.static(FRONTEND_DIR));
 
 app.get("*", (_req, res) => {
-  res.sendFile(path.join(FRONTEND_DIR, "home.html"));
+  res.sendFile(path.join(FRONTEND_DIR, "login.html"));
 });
+
+async function ensureDataFile() {
+  await fs.mkdir(DATA_DIR, { recursive: true });
+  try { await fs.access(DATA_FILE); } catch { await fs.writeFile(DATA_FILE, "[]", "utf8"); }
+  try { await fs.access(MANTENIMIENTOS_FILE); } catch { await fs.writeFile(MANTENIMIENTOS_FILE, "[]", "utf8"); }
+  try { await fs.access(USERS_FILE); } catch { await fs.writeFile(USERS_FILE, "[]", "utf8"); }
+}
 
 ensureDataFile()
   .then(() => {
