@@ -1,1 +1,16 @@
-[]
+[
+  {
+    "id": "1777606999566-44816",
+    "placa": "BKT26R",
+    "marca": "Yamaha",
+    "modelo": "FZ25",
+    "anio": 2023,
+    "cilindraje": "250cc",
+    "estado": "activa",
+    "relieve": "medio",
+    "propietario": "admin",
+    "fechaRegistro": "2026-05-01T03:43:19.566Z",
+    "foto": "",
+    "fotoPreset": "yamaha-fz25"
+  }
+]
