@@ -1,0 +1,9 @@
+# OS
+.DS_Store
+Thumbs.db
+
+# Agent / editor tooling (no es código del proyecto)
+skills-lock.json
+
+# Deploy CLI (config local)
+.railway/

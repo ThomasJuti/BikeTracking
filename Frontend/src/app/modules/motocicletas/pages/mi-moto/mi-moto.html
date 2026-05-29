@@ -133,6 +133,14 @@
                   <p class="profile-value mb-0">{{ m.cilindraje }}</p>
                 </div>
               </div>
+              <div class="col-12 col-md-6 col-xl-3">
+                <div class="profile-detail h-100">
+                  <p class="profile-label mb-1">Kilometraje actual</p>
+                  <p class="profile-value mb-0">
+                    {{ m.kilometrajeActual != null ? (m.kilometrajeActual + ' km') : 'Sin registrar' }}
+                  </p>
+                </div>
+              </div>
             </div>
           </article>
         }
@@ -270,6 +278,22 @@
                 } @else if (form.controls.propietario.errors?.['minlength']) {
                   El nombre debe tener al menos 2 caracteres.
                 }
+              </div>
+            </div>
+            <div class="col-md-6">
+              <label for="kilometrajeActual" class="form-label">Kilometraje actual (opcional)</label>
+              <input
+                id="kilometrajeActual"
+                type="number"
+                min="0"
+                step="1"
+                class="form-control"
+                placeholder="Ej. 15000"
+                formControlName="kilometrajeActual"
+                [class.is-invalid]="form.controls.kilometrajeActual.touched && form.controls.kilometrajeActual.invalid"
+              />
+              <div class="invalid-feedback">
+                El kilometraje debe ser un número igual o mayor a 0.
               </div>
             </div>
           </div>

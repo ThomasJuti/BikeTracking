@@ -7,11 +7,13 @@ import { AuthResponse, AuthUser, LoginDto, RegisterDto } from '../models/auth.mo
 const TOKEN_KEY = 'bt_token';
 const USER_KEY = 'bt_user';
 
+import { environment } from '../../../../environments/environment';
+
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
-  private readonly base = '/api/auth';
+  private readonly base = `${environment.apiUrl}/auth`;
 
   private readonly _token = signal<string | null>(this.loadToken());
   private readonly _user = signal<AuthUser | null>(this.loadUser());

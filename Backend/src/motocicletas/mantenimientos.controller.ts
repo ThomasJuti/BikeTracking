@@ -1,17 +1,19 @@
-import { Body, Controller, Get, Post } from '@nestjs/common';
+import { Body, Controller, Get, Post, Req, UseGuards } from '@nestjs/common';
+import { AuthGuard } from '@nestjs/passport';
 import { MotocicletasService } from './motocicletas.service';
 
 @Controller('mantenimientos')
+@UseGuards(AuthGuard('jwt'))
 export class MantenimientosController {
   constructor(private readonly motocicletasService: MotocicletasService) {}
 
   @Get()
-  findAll() {
-    return this.motocicletasService.findAllMantenimientos();
+  findAll(@Req() req: any) {
+    return this.motocicletasService.findAllMantenimientos(req.user.id);
   }
 
   @Post()
-  create(@Body() body: Record<string, unknown>) {
-    return this.motocicletasService.createMantenimiento(body);
+  create(@Req() req: any, @Body() body: Record<string, unknown>) {
+    return this.motocicletasService.createMantenimiento(req.user.id, body);
   }
 }

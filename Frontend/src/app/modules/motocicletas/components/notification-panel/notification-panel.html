@@ -1,0 +1,99 @@
+@if (notifications.loading()) {
+  <div class="notification-bar notification-bar--loading">
+    <span class="spinner-border spinner-border-sm me-2" role="status"></span>
+    Revisando mantenimientos...
+  </div>
+} @else if (notifications.error()) {
+  <div class="notification-bar notification-bar--error">
+    <i class="bi bi-exclamation-circle me-2"></i>
+    {{ notifications.error() }}
+  </div>
+} @else if (notifications.summary(); as summary) {
+  @if (summary.alertas.length === 0) {
+    <!-- sin motos registradas -->
+  } @else if (notifications.hasCritical() || notifications.expanded()) {
+    <section
+      class="notification-bar"
+      [class.notification-bar--danger]="summary.vencidos > 0"
+      [class.notification-bar--warning]="summary.vencidos === 0 && summary.proximos > 0"
+      [class.notification-bar--info]="summary.vencidos === 0 && summary.proximos === 0 && summary.sinHistorial > 0"
+    >
+      <div class="container py-3">
+        <div class="d-flex flex-wrap align-items-center justify-content-between gap-2">
+          <div class="d-flex flex-wrap align-items-center gap-3">
+            <h2 class="notification-title mb-0">
+              <i class="bi bi-bell-fill me-2"></i>
+              Alertas de mantenimiento
+            </h2>
+            <div class="d-flex flex-wrap gap-2">
+              @if (summary.vencidos > 0) {
+                <span class="badge badge-vencido">{{ summary.vencidos }} vencido{{ summary.vencidos === 1 ? '' : 's' }}</span>
+              }
+              @if (summary.proximos > 0) {
+                <span class="badge badge-proximo">{{ summary.proximos }} próximo{{ summary.proximos === 1 ? '' : 's' }}</span>
+              }
+              @if (summary.sinHistorial > 0) {
+                <span class="badge badge-sin-historial">{{ summary.sinHistorial }} sin historial</span>
+              }
+              @if (summary.alDia > 0 && !notifications.hasCritical()) {
+                <span class="badge badge-al-dia">{{ summary.alDia }} al día</span>
+              }
+            </div>
+          </div>
+          <div class="d-flex gap-2">
+            <a routerLink="/mantenimiento" class="btn btn-sm btn-outline-light">
+              Registrar servicio
+            </a>
+            <button
+              type="button"
+              class="btn btn-sm btn-outline-secondary"
+              (click)="notifications.toggleExpanded()"
+            >
+              {{ notifications.expanded() ? 'Ocultar' : 'Ver detalle' }}
+            </button>
+          </div>
+        </div>
+
+        @if (notifications.expanded()) {
+          <div class="notification-list mt-3">
+            @for (alerta of notifications.sortByPriority(summary.alertas); track alerta.motoId) {
+              @if (alerta.nivel !== 'al_dia' || summary.vencidos + summary.proximos === 0) {
+                <article class="notification-item" [attr.data-nivel]="alerta.nivel">
+                  <div class="notification-item-icon">
+                    <i class="bi" [class]="nivelIcon(alerta.nivel)"></i>
+                  </div>
+                  <div class="flex-grow-1">
+                    <div class="d-flex flex-wrap align-items-center gap-2 mb-1">
+                      <strong class="text-white">{{ alerta.placa }}</strong>
+                      <span class="text-muted">{{ alerta.marca }} {{ alerta.modelo }}</span>
+                      <span class="badge badge-nivel" [attr.data-nivel]="alerta.nivel">
+                        {{ nivelLabel(alerta.nivel) }}
+                      </span>
+                    </div>
+                    <p class="mb-0 text-muted small">{{ alerta.mensaje }}</p>
+                  </div>
+                </article>
+              }
+            }
+          </div>
+        }
+      </div>
+    </section>
+  } @else if (summary.alDia > 0) {
+    <div class="notification-bar notification-bar--ok">
+      <div class="container py-2 d-flex align-items-center justify-content-between gap-2">
+        <span>
+          <i class="bi bi-check-circle-fill me-2"></i>
+          Todas tus motos están al día en mantenimiento.
+        </span>
+        <button
+          type="button"
+          class="btn btn-sm btn-link text-muted p-0"
+          (click)="notifications.toggleExpanded()"
+        >
+          Ver detalle
+        </button>
+      </div>
+    </div>
+  }
+}

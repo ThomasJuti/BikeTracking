@@ -96,6 +96,14 @@
         </div>
 
         <div class="col-12 col-md-4">
+          <label for="kilometraje" class="form-label fw-semibold">Kilometraje (opcional)</label>
+          <input id="kilometraje" type="number" min="0" step="1" class="form-control"
+            placeholder="Km al momento del servicio" formControlName="kilometraje"
+            [class.is-invalid]="form.controls.kilometraje.touched && form.controls.kilometraje.invalid" />
+          <div class="invalid-feedback">El kilometraje debe ser un número igual o mayor a 0.</div>
+        </div>
+
+        <div class="col-12 col-md-4">
           <label for="tecnico" class="form-label fw-semibold">Tecnico responsable</label>
           <input id="tecnico" type="text" class="form-control" placeholder="Nombre del tecnico"
             formControlName="tecnico" [class.is-invalid]="
@@ -139,6 +147,7 @@
             <th>Vehiculo</th>
             <th>Tipo</th>
             <th>Descripcion</th>
+            <th>Km</th>
             <th>Costo</th>
             <th>Tecnico</th>
           </tr>
@@ -156,6 +165,7 @@
             </td>
             <td class="text-capitalize">{{ m.tipo }}</td>
             <td>{{ m.descripcion }}</td>
+            <td>{{ m.kilometraje != null ? (m.kilometraje | number) : '—' }}</td>
             <td>{{ m.costo | currency:'USD' }}</td>
             <td>{{ m.tecnico }}</td>
           </tr>

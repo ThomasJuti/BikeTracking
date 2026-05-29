@@ -26,6 +26,13 @@ export const motocicletasRoutes: Routes = [
             (m) => m.MantenimientoPageComponent,
           ),
       },
+      {
+        path: 'comparador',
+        loadComponent: () =>
+          import('./pages/comparador/comparador').then(
+            (m) => m.ComparadorPageComponent,
+          ),
+      },
     ],
   },
 ];

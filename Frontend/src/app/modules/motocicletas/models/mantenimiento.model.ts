@@ -6,5 +6,6 @@ export interface Mantenimiento {
   fecha: string;
   costo: number;
   tecnico: string;
+  kilometraje?: number | null;
   fechaRegistro: string;
 }

@@ -17,6 +17,69 @@
     </div>
   </section>
 } @else {
+  @if (summary && motos.length > 0) {
+    <section class="row g-3 mb-4">
+      <div class="col-6 col-md-3">
+        <article class="card h-100 border-danger-subtle">
+          <div class="card-body p-4">
+            <p class="text-muted mb-1 small text-uppercase fw-semibold">Vencidos</p>
+            <p class="fs-3 fw-bold text-danger mb-0">{{ summary.vencidos }}</p>
+          </div>
+        </article>
+      </div>
+      <div class="col-6 col-md-3">
+        <article class="card h-100 border-warning-subtle">
+          <div class="card-body p-4">
+            <p class="text-muted mb-1 small text-uppercase fw-semibold">Próximos</p>
+            <p class="fs-3 fw-bold text-warning mb-0">{{ summary.proximos }}</p>
+          </div>
+        </article>
+      </div>
+      <div class="col-6 col-md-3">
+        <article class="card h-100">
+          <div class="card-body p-4">
+            <p class="text-muted mb-1 small text-uppercase fw-semibold">Al día</p>
+            <p class="fs-3 fw-bold text-success mb-0">{{ summary.alDia }}</p>
+          </div>
+        </article>
+      </div>
+      <div class="col-6 col-md-3">
+        <article class="card h-100">
+          <div class="card-body p-4">
+            <p class="text-muted mb-1 small text-uppercase fw-semibold">Sin historial</p>
+            <p class="fs-3 fw-bold text-info mb-0">{{ summary.sinHistorial }}</p>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="card mb-4">
+      <div class="card-body p-4 p-md-5">
+        <h2 class="fs-5 fw-bold mb-3 text-white">Estado de mantenimiento por moto</h2>
+        <div class="d-flex flex-column gap-3">
+          @for (alerta of alertas; track alerta.motoId) {
+            <article class="p-3 border" [class.border-danger]="alerta.nivel === 'vencido'"
+              [class.border-warning]="alerta.nivel === 'proximo'"
+              [class.border-info]="alerta.nivel === 'sin_historial'"
+              [class.border-success]="alerta.nivel === 'al_dia'">
+              <div class="d-flex flex-wrap justify-content-between gap-2 mb-1">
+                <strong class="text-white">{{ alerta.placa }} · {{ alerta.marca }} {{ alerta.modelo }}</strong>
+                <span class="badge"
+                  [class.bg-danger]="alerta.nivel === 'vencido'"
+                  [class.bg-warning]="alerta.nivel === 'proximo'"
+                  [class.bg-info]="alerta.nivel === 'sin_historial'"
+                  [class.bg-success]="alerta.nivel === 'al_dia'">
+                  {{ nivelLabel(alerta.nivel) }}
+                </span>
+              </div>
+              <p class="text-muted mb-0 small">{{ alerta.mensaje }}</p>
+            </article>
+          }
+        </div>
+      </div>
+    </section>
+  }
+
   <section class="row g-3 mb-4 stats-row" id="stats">
     <div class="col-6 col-md-3">
       <article class="card h-100">

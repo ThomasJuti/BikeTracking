@@ -17,6 +17,7 @@ type MotoRow = RowDataPacket & {
   cilindraje: string;
   estado: string;
   propietario: string;
+  kilometrajeActual: number | null;
   fechaRegistro: string | Date;
 };
 
@@ -28,6 +29,7 @@ type MantenimientoRow = RowDataPacket & {
   fecha: string | Date;
   costo: number;
   tecnico: string;
+  kilometraje: number | null;
   fechaRegistro: string | Date;
 };
 
@@ -44,6 +46,17 @@ export class MotocicletasService {
     return d.toISOString();
   }
 
+  private parseOptionalKm(value: unknown): number | null {
+    if (value === undefined || value === null || value === '') {
+      return null;
+    }
+    const km = Number(value);
+    if (!Number.isInteger(km) || km < 0) {
+      return NaN as unknown as null;
+    }
+    return km;
+  }
+
   private mapMoto(row: MotoRow): Moto {
     return {
       id: row.id,
@@ -54,6 +67,8 @@ export class MotocicletasService {
       cilindraje: row.cilindraje,
       estado: row.estado,
       propietario: row.propietario,
+      kilometrajeActual:
+        row.kilometrajeActual != null ? Number(row.kilometrajeActual) : null,
       fechaRegistro: this.toIso(row.fechaRegistro),
     };
   }
@@ -70,6 +85,7 @@ export class MotocicletasService {
           : row.fecha.toISOString().slice(0, 10),
       costo: Number(row.costo),
       tecnico: row.tecnico,
+      kilometraje: row.kilometraje != null ? Number(row.kilometraje) : null,
       fechaRegistro: this.toIso(row.fechaRegistro),
     };
   }
@@ -132,6 +148,13 @@ export class MotocicletasService {
       errors.push('El estado debe ser activa, mantenimiento o inactiva.');
     }
 
+    const kmVal = this.parseOptionalKm(
+      payload.kilometrajeActual ?? payload.kilometraje_actual,
+    );
+    if (Number.isNaN(kmVal as unknown as number)) {
+      errors.push('El kilometraje actual debe ser un entero igual o mayor a 0.');
+    }
+
     const placaInput = this.normalize(payload.placa).toUpperCase();
     if (placaInput) {
       const pool = this.mysqlService.getPool();
@@ -147,15 +170,21 @@ export class MotocicletasService {
     return errors;
   }
 
-  async findAllMotos(q?: string, estado?: string): Promise<Moto[]> {
+  async findAllMotos(
+    userId: string,
+    q?: string,
+    estado?: string,
+  ): Promise<Moto[]> {
     try {
       const pool = this.mysqlService.getPool();
       const sql = `
         SELECT
           id, placa, marca, modelo, anio, cilindraje, estado, propietario,
+          kilometraje_actual AS kilometrajeActual,
           fecha_registro AS fechaRegistro
         FROM motos
-        WHERE (? = '' OR estado = ?)
+        WHERE user_id = ?
+          AND (? = '' OR estado = ?)
           AND (? = '' OR CONCAT(placa, ' ', marca, ' ', modelo, ' ', propietario) LIKE ?)
         ORDER BY fecha_registro DESC
       `;
@@ -163,6 +192,7 @@ export class MotocicletasService {
       const qParam = this.normalize(q);
       const likeParam = `%${qParam}%`;
       const [rows] = await pool.query<MotoRow[]>(sql, [
+        userId,
         estadoParam,
         estadoParam,
         qParam,
@@ -176,19 +206,20 @@ export class MotocicletasService {
     }
   }
 
-  async findOneMoto(id: string): Promise<Moto> {
+  async findOneMoto(userId: string, id: string): Promise<Moto> {
     try {
       const pool = this.mysqlService.getPool();
       const [rows] = await pool.query<MotoRow[]>(
         `
           SELECT
             id, placa, marca, modelo, anio, cilindraje, estado, propietario,
+            kilometraje_actual AS kilometrajeActual,
             fecha_registro AS fechaRegistro
           FROM motos
-          WHERE id = ?
+          WHERE id = ? AND user_id = ?
           LIMIT 1
         `,
-        [id],
+        [id, userId],
       );
       if (!rows.length) {
         throw new NotFoundException('Motocicleta no encontrada.');
@@ -202,7 +233,10 @@ export class MotocicletasService {
     }
   }
 
-  async createMoto(payload: Record<string, unknown>): Promise<Moto> {
+  async createMoto(
+    userId: string,
+    payload: Record<string, unknown>,
+  ): Promise<Moto> {
     const errors = await this.validateMoto(payload);
     if (errors.length) {
       throw new BadRequestException({ message: 'Validacion fallida.', errors });
@@ -217,28 +251,42 @@ export class MotocicletasService {
       const cilindraje = this.normalize(payload.cilindraje);
       const estado = this.normalize(payload.estado).toLowerCase();
       const propietario = this.normalize(payload.propietario);
+      const kilometrajeActual = this.parseOptionalKm(
+        payload.kilometrajeActual ?? payload.kilometraje_actual,
+      );
 
       await pool.query<ResultSetHeader>(
         `
           INSERT INTO motos (
-            id, placa, marca, modelo, anio, cilindraje, estado, propietario
+            id, user_id, placa, marca, modelo, anio, cilindraje, estado, propietario, kilometraje_actual
           )
-          VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?)
+          VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?, ?, ?)
         `,
-        [placa, marca, modelo, anio, cilindraje, estado, propietario],
+        [
+          userId,
+          placa,
+          marca,
+          modelo,
+          anio,
+          cilindraje,
+          estado,
+          propietario,
+          kilometrajeActual,
+        ],
       );
 
       const [rows] = await pool.query<MotoRow[]>(
         `
           SELECT
             id, placa, marca, modelo, anio, cilindraje, estado, propietario,
+            kilometraje_actual AS kilometrajeActual,
             fecha_registro AS fechaRegistro
           FROM motos
-          WHERE placa = ?
+          WHERE placa = ? AND user_id = ?
           ORDER BY fecha_registro DESC
           LIMIT 1
         `,
-        [placa],
+        [placa, userId],
       );
       return this.mapMoto(rows[0]);
     } catch {
@@ -248,7 +296,11 @@ export class MotocicletasService {
     }
   }
 
-  async updateMoto(id: string, payload: Record<string, unknown>): Promise<Moto> {
+  async updateMoto(
+    userId: string,
+    id: string,
+    payload: Record<string, unknown>,
+  ): Promise<Moto> {
     const errors = await this.validateMoto(payload, id);
     if (errors.length) {
       throw new BadRequestException({ message: 'Validacion fallida.', errors });
@@ -257,8 +309,8 @@ export class MotocicletasService {
     try {
       const pool = this.mysqlService.getPool();
       const [existe] = await pool.query<RowDataPacket[]>(
-        'SELECT id FROM motos WHERE id = ? LIMIT 1',
-        [id],
+        'SELECT id FROM motos WHERE id = ? AND user_id = ? LIMIT 1',
+        [id, userId],
       );
       if (!existe.length) {
         throw new NotFoundException('Motocicleta no encontrada.');
@@ -268,8 +320,8 @@ export class MotocicletasService {
         `
           UPDATE motos
           SET placa = ?, marca = ?, modelo = ?, anio = ?, cilindraje = ?,
-              estado = ?, propietario = ?
-          WHERE id = ?
+              estado = ?, propietario = ?, kilometraje_actual = ?
+          WHERE id = ? AND user_id = ?
         `,
         [
           this.normalize(payload.placa).toUpperCase(),
@@ -279,11 +331,15 @@ export class MotocicletasService {
           this.normalize(payload.cilindraje),
           this.normalize(payload.estado).toLowerCase(),
           this.normalize(payload.propietario),
+          this.parseOptionalKm(
+            payload.kilometrajeActual ?? payload.kilometraje_actual,
+          ),
           id,
+          userId,
         ],
       );
 
-      return this.findOneMoto(id);
+      return this.findOneMoto(userId, id);
     } catch (e) {
       if (e instanceof BadRequestException || e instanceof NotFoundException) {
         throw e;
@@ -294,15 +350,22 @@ export class MotocicletasService {
     }
   }
 
-  async deleteMoto(id: string): Promise<void> {
+  async deleteMoto(userId: string, id: string): Promise<void> {
     try {
       const pool = this.mysqlService.getPool();
-      // Eliminar registros de mantenimientos asociados para evitar error de clave foránea
+      const [owned] = await pool.query<RowDataPacket[]>(
+        'SELECT id FROM motos WHERE id = ? AND user_id = ? LIMIT 1',
+        [id, userId],
+      );
+      if (!owned.length) {
+        throw new NotFoundException('Motocicleta no encontrada.');
+      }
+
       await pool.query('DELETE FROM mantenimientos WHERE moto_id = ?', [id]);
-      
+
       const [result] = await pool.query<ResultSetHeader>(
-        'DELETE FROM motos WHERE id = ?',
-        [id],
+        'DELETE FROM motos WHERE id = ? AND user_id = ?',
+        [id, userId],
       );
       if (!result.affectedRows) {
         throw new NotFoundException('Motocicleta no encontrada.');
@@ -315,17 +378,20 @@ export class MotocicletasService {
     }
   }
 
-  async findAllMantenimientos(): Promise<Mantenimiento[]> {
+  async findAllMantenimientos(userId: string): Promise<Mantenimiento[]> {
     try {
       const pool = this.mysqlService.getPool();
       const [rows] = await pool.query<MantenimientoRow[]>(
         `
           SELECT
-            id, moto_id, tipo, descripcion, fecha, costo, tecnico,
-            fecha_registro AS fechaRegistro
-          FROM mantenimientos
-          ORDER BY fecha DESC, fecha_registro DESC
+            m.id, m.moto_id, m.tipo, m.descripcion, m.fecha, m.costo, m.tecnico,
+            m.kilometraje, m.fecha_registro AS fechaRegistro
+          FROM mantenimientos m
+          INNER JOIN motos mo ON mo.id = m.moto_id
+          WHERE mo.user_id = ?
+          ORDER BY m.fecha DESC, m.fecha_registro DESC
         `,
+        [userId],
       );
       return rows.map((r) => this.mapMantenimiento(r));
     } catch {
@@ -336,6 +402,7 @@ export class MotocicletasService {
   }
 
   async createMantenimiento(
+    userId: string,
     payload: Record<string, unknown>,
   ): Promise<Mantenimiento> {
     const errors: string[] = [];
@@ -388,6 +455,11 @@ export class MotocicletasService {
       errors.push('El costo no puede superar 999999.');
     }
 
+    const kilometraje = this.parseOptionalKm(payload.kilometraje);
+    if (Number.isNaN(kilometraje as unknown as number)) {
+      errors.push('El kilometraje debe ser un entero igual o mayor a 0.');
+    }
+
     if (errors.length) {
       throw new BadRequestException({ message: 'Validacion fallida.', errors });
     }
@@ -396,12 +468,12 @@ export class MotocicletasService {
       const pool = this.mysqlService.getPool();
       const motoId = this.normalize(payload.moto_id);
       const [motoRows] = await pool.query<RowDataPacket[]>(
-        'SELECT id FROM motos WHERE id = ? LIMIT 1',
-        [motoId],
+        'SELECT id FROM motos WHERE id = ? AND user_id = ? LIMIT 1',
+        [motoId, userId],
       );
       if (!motoRows.length) {
         throw new BadRequestException({
-          message: 'La motocicleta seleccionada no existe.',
+          message: 'La motocicleta seleccionada no existe o no te pertenece.',
           errors: ['moto_id invalido.'],
         });
       }
@@ -409,8 +481,8 @@ export class MotocicletasService {
       await pool.query<ResultSetHeader>(
         `
           INSERT INTO mantenimientos (
-            id, moto_id, tipo, descripcion, fecha, costo, tecnico
-          ) VALUES (UUID(), ?, ?, ?, ?, ?, ?)
+            id, moto_id, tipo, descripcion, fecha, costo, tecnico, kilometraje
+          ) VALUES (UUID(), ?, ?, ?, ?, ?, ?, ?)
         `,
         [
           motoId,
@@ -419,13 +491,14 @@ export class MotocicletasService {
           String(payload.fecha),
           costo,
           this.normalize(payload.tecnico),
+          kilometraje,
         ],
       );
 
       const [rows] = await pool.query<MantenimientoRow[]>(
         `
           SELECT
-            id, moto_id, tipo, descripcion, fecha, costo, tecnico,
+            id, moto_id, tipo, descripcion, fecha, costo, tecnico, kilometraje,
             fecha_registro AS fechaRegistro
           FROM mantenimientos
           WHERE moto_id = ?
@@ -440,6 +513,70 @@ export class MotocicletasService {
       throw new InternalServerErrorException(
         'No se pudo registrar el mantenimiento.',
       );
+    }
+  }
+
+  async searchCatalog(q?: string, limit: number = 20): Promise<any[]> {
+    try {
+      const pool = this.mysqlService.getPool();
+      let sql = `
+        SELECT 
+          id, brand, model, year, category, displacement, power, torque,
+          engine_cylinder AS engineCylinder, engine_stroke AS engineStroke,
+          gearbox, bore, stroke, fuel_capacity AS fuelCapacity,
+          fuel_system AS fuelSystem, fuel_control AS fuelControl,
+          cooling_system AS coolingSystem, transmission_type AS transmissionType,
+          dry_weight AS dryWeight, wheelbase, seat_height AS seatHeight,
+          front_brakes AS frontBrakes, rear_brakes AS rearBrakes,
+          front_tire AS frontTire, rear_tire AS rearTire,
+          front_suspension AS frontSuspension, rear_suspension AS rearSuspension,
+          color_options AS colorOptions
+        FROM motos_catalogo
+      `;
+      const params: any[] = [];
+      if (q) {
+        sql += ` WHERE CONCAT(brand, ' ', model) LIKE ? `;
+        params.push(`%${this.normalize(q)}%`);
+      }
+      sql += ` ORDER BY brand ASC, model ASC, year DESC LIMIT ?`;
+      params.push(limit);
+
+      const [rows] = await pool.query<RowDataPacket[]>(sql, params);
+      return rows;
+    } catch (error) {
+      throw new InternalServerErrorException('No se pudo buscar en el catalogo.');
+    }
+  }
+
+  async findCatalogItem(id: number): Promise<any> {
+    try {
+      const pool = this.mysqlService.getPool();
+      const [rows] = await pool.query<RowDataPacket[]>(
+        `
+          SELECT 
+            id, brand, model, year, category, displacement, power, torque,
+            engine_cylinder AS engineCylinder, engine_stroke AS engineStroke,
+            gearbox, bore, stroke, fuel_capacity AS fuelCapacity,
+            fuel_system AS fuelSystem, fuel_control AS fuelControl,
+            cooling_system AS coolingSystem, transmission_type AS transmissionType,
+            dry_weight AS dryWeight, wheelbase, seat_height AS seatHeight,
+            front_brakes AS frontBrakes, rear_brakes AS rearBrakes,
+            front_tire AS frontTire, rear_tire AS rearTire,
+            front_suspension AS frontSuspension, rear_suspension AS rearSuspension,
+            color_options AS colorOptions
+          FROM motos_catalogo
+          WHERE id = ?
+          LIMIT 1
+        `,
+        [id],
+      );
+      if (!rows.length) {
+        throw new NotFoundException('Modelo de catalogo no encontrado.');
+      }
+      return rows[0];
+    } catch (error) {
+      if (error instanceof NotFoundException) throw error;
+      throw new InternalServerErrorException('No se pudo obtener el modelo de catalogo.');
     }
   }
 }

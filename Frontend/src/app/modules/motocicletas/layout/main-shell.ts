@@ -1,11 +1,13 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, OnInit } from '@angular/core';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { AuthService } from '../../auth/services/auth.service';
+import { NotificationPanelComponent } from '../components/notification-panel/notification-panel';
+import { MaintenanceNotificationsService } from '../services/maintenance-notifications.service';
 
 @Component({
   selector: 'app-main-shell',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, NotificationPanelComponent],
   template: `
     <nav class="navbar bg-panel border-bottom py-3">
       <div class="container d-flex flex-wrap justify-content-between align-items-center gap-2">
@@ -39,6 +41,14 @@ import { AuthService } from '../../auth/services/auth.service';
               >Mantenimiento</a
             >
           </li>
+          <li class="nav-item">
+            <a
+              class="nav-link text-muted px-0 text-uppercase"
+              routerLink="/comparador"
+              routerLinkActive="active"
+              >Comparador</a
+            >
+          </li>
           <li class="nav-item ms-md-4 d-flex align-items-center gap-3">
             @if (auth.currentUser(); as user) {
               <span class="d-none d-md-inline text-muted small tracking">
@@ -49,7 +59,7 @@ import { AuthService } from '../../auth/services/auth.service';
               id="btn-logout"
               type="button"
               class="btn btn-sm btn-outline-secondary"
-              (click)="auth.logout()"
+              (click)="logout()"
               title="Cerrar sesión"
             >
               <i class="bi bi-power"></i>
@@ -58,6 +68,8 @@ import { AuthService } from '../../auth/services/auth.service';
         </ul>
       </div>
     </nav>
+
+    <app-notification-panel />
 
     <main class="container py-5">
       <router-outlet />
@@ -108,6 +120,16 @@ import { AuthService } from '../../auth/services/auth.service';
     `,
   ],
 })
-export class MainShellComponent {
+export class MainShellComponent implements OnInit {
   readonly auth = inject(AuthService);
+  private readonly notifications = inject(MaintenanceNotificationsService);
+
+  ngOnInit(): void {
+    this.notifications.load();
+  }
+
+  logout(): void {
+    this.notifications.clear();
+    this.auth.logout();
+  }
 }

@@ -42,6 +42,13 @@ lerna-debug.log*
 .env.production.local
 .env.local
 
+# Datasets descargados (Kaggle / import)
+/data/motorcycle/
+*.csv
+
+# Railway CLI (config local del directorio)
+.railway/
+
 # temp directory
 .temp
 .tmp

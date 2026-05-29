@@ -1,5 +1,6 @@
 import { Component, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
@@ -31,8 +32,9 @@ export class LoginPageComponent {
 
     this.auth.login(this.form.getRawValue()).subscribe({
       next: () => this.router.navigate(['/inicio']),
-      error: (err: Error) => {
-        this.error.set(err.message || 'Credenciales inválidas.');
+      error: (err: HttpErrorResponse) => {
+        const msg = err.error?.message;
+        this.error.set(typeof msg === 'string' ? msg : 'Credenciales inválidas.');
         this.loading.set(false);
       },
     });

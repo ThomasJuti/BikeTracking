@@ -1,5 +1,6 @@
 import { Component, computed, inject, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 
@@ -46,8 +47,9 @@ export class RegisterPageComponent {
     const { name, email, password } = this.form.getRawValue();
     this.auth.register({ name, email, password }).subscribe({
       next: () => this.router.navigate(['/inicio']),
-      error: (err: Error) => {
-        this.error.set(err.message || 'Error al crear cuenta. Intenta de nuevo.');
+      error: (err: HttpErrorResponse) => {
+        const msg = err.error?.message;
+        this.error.set(typeof msg === 'string' ? msg : 'Error al crear cuenta. Intenta de nuevo.');
         this.loading.set(false);
       },
     });

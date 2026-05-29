@@ -5,7 +5,9 @@ import { forkJoin } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { SectionHeroComponent } from '../../components/section-hero/section-hero';
 import { Mantenimiento } from '../../models/mantenimiento.model';
+import { MaintenanceAlert } from '../../models/notificacion.model';
 import { Moto } from '../../models/moto.model';
+import { MaintenanceNotificationsService } from '../../services/maintenance-notifications.service';
 import { MotocicletasApiService } from '../../services/motocicletas-api.service';
 
 @Component({
@@ -16,12 +18,14 @@ import { MotocicletasApiService } from '../../services/motocicletas-api.service'
 })
 export class HomeDashboardPageComponent implements OnInit {
   private readonly api = inject(MotocicletasApiService);
+  readonly notifications = inject(MaintenanceNotificationsService);
   private readonly cdr = inject(ChangeDetectorRef);
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
   loading = true;
   error = '';
+  motos: Moto[] = [];
   primaryMoto: Moto | null = null;
   mantenimientosDeMoto: Mantenimiento[] = [];
 
@@ -39,6 +43,14 @@ export class HomeDashboardPageComponent implements OnInit {
       .subscribe(() => this.loadDashboardData());
   }
 
+  get alertas(): MaintenanceAlert[] {
+    return this.notifications.sortByPriority(this.notifications.alertas());
+  }
+
+  get summary() {
+    return this.notifications.summary();
+  }
+
   private loadDashboardData(): void {
     this.loading = true;
     this.error = '';
@@ -48,6 +60,7 @@ export class HomeDashboardPageComponent implements OnInit {
       mantenimientos: this.api.listMantenimientos(),
     }).subscribe({
       next: ({ motos, mantenimientos }) => {
+        this.motos = motos;
         this.primaryMoto = motos[0] ?? null;
         const mid = this.primaryMoto?.id;
         this.mantenimientosDeMoto = mid
@@ -85,5 +98,15 @@ export class HomeDashboardPageComponent implements OnInit {
       month: 'short',
       year: 'numeric',
     });
+  }
+
+  nivelLabel(nivel: string): string {
+    const map: Record<string, string> = {
+      vencido: 'Vencido',
+      proximo: 'Próximo',
+      sin_historial: 'Sin historial',
+      al_dia: 'Al día',
+    };
+    return map[nivel] ?? nivel;
   }
 }

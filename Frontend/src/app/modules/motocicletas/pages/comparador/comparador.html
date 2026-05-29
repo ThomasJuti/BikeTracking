@@ -1,0 +1,526 @@
+<app-section-hero eyebrow="BikeTracking" title="Comparador de Motos" subtitle="Busca y compara especificaciones tecnicas de mas de 38,000 modelos en el mercado internacional.">
+  <div class="d-flex justify-content-md-end mt-3 mt-md-0">
+    <a routerLink="/inicio" class="btn btn-outline-secondary btn-lg">
+      <i class="bi bi-chevron-left"></i>
+      Volver
+    </a>
+  </div>
+</app-section-hero>
+
+<div class="container-fluid px-0">
+  <!-- Alerts -->
+  <div
+    class="alert"
+    role="alert"
+    [class.d-none]="!alertText"
+    [class.alert-success]="alertType === 'success'"
+    [class.alert-danger]="alertType === 'danger'"
+  >
+    {{ alertText }}
+  </div>
+
+  <!-- Mis motos registradas -->
+  <section class="card mb-4">
+    <div class="card-body p-4">
+      <h3 class="fs-4 mb-3 text-white">Mis motos registradas</h3>
+      @if (loadingUserMotos) {
+        <p class="text-muted mb-0">Cargando tus motos...</p>
+      } @else if (!userMotos.length) {
+        <p class="text-muted mb-3">
+          Aún no tienes motos registradas. Agrega una desde
+          <a routerLink="/mi-moto" class="text-primary">Mi moto</a>
+          o desde el catálogo más abajo.
+        </p>
+      } @else {
+        <p class="text-muted small mb-3">
+          Selecciona una de tus motos para compararla con modelos del catálogo.
+        </p>
+        <div class="row g-3">
+          @for (moto of userMotos; track moto.id) {
+            <div class="col-12 col-md-6 col-lg-4">
+              <button
+                type="button"
+                class="w-100 text-start p-3 border rounded user-moto-card"
+                [class.user-moto-card--selected]="selectedUserMotoId === moto.id"
+                (click)="selectUserMoto(moto.id)"
+              >
+                <p class="tracking mb-1">{{ moto.placa }}</p>
+                <h5 class="text-white mb-1">{{ moto.marca }} {{ moto.modelo }}</h5>
+                <p class="text-muted mb-0 small">
+                  {{ moto.anio }} · {{ moto.cilindraje }}
+                  @if (moto.kilometrajeActual != null) {
+                    · {{ moto.kilometrajeActual | number }} km
+                  }
+                </p>
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </section>
+
+  <!-- Search Section -->
+  <section class="card mb-4 position-relative comparador-search-card">
+    <div class="card-body p-4">
+      <h3 class="fs-4 mb-3 text-white">Buscar motocicletas</h3>
+      <div class="position-relative">
+        <div class="input-group">
+          <span class="input-group-text bg-dark border-secondary text-muted">
+            <i class="bi bi-search"></i>
+          </span>
+          <input
+            type="text"
+            class="form-control form-control-lg border-secondary text-white"
+            placeholder="Ej. Honda CBR, Yamaha R6, Suzuki GSX..."
+            [value]="searchQuery"
+            (input)="onSearchChange($event)"
+          />
+          @if (loading) {
+            <span class="input-group-text bg-dark border-secondary">
+              <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+            </span>
+          }
+        </div>
+
+        <!-- Search Results Dropdown -->
+        @if (searchResults.length > 0) {
+          <div class="position-absolute w-100 bg-panel border border-secondary mt-1 rounded shadow-lg overflow-auto comparador-search-results" style="max-height: 350px;">
+            <div class="list-group list-group-flush">
+              @for (bike of searchResults; track bike.id) {
+                <div class="list-group-item bg-panel text-white border-bottom border-secondary d-flex justify-content-between align-items-center p-3 hover-bg">
+                  <div>
+                    <h5 class="mb-0 text-capitalize fs-5 text-white">
+                      {{ bike.brand }} <span class="text-primary">{{ bike.model }}</span>
+                    </h5>
+                    <p class="text-muted mb-0 small">
+                      Año: {{ bike.year }} · Categoría: {{ bike.category || 'N/D' }} · Cilindrada: {{ bike.displacement ? bike.displacement + ' cc' : 'N/D' }}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    class="btn btn-sm btn-outline-primary"
+                    (click)="addToComparison(bike)"
+                  >
+                    <i class="bi bi-plus-lg"></i>
+                    Comparar
+                  </button>
+                </div>
+              }
+            </div>
+          </div>
+        } @else if (searchQuery.trim().length >= 2 && !loading) {
+          <div class="position-absolute w-100 bg-panel border border-secondary mt-1 rounded p-3 text-center text-muted" style="z-index: 1050;">
+            No se encontraron modelos para "{{ searchQuery }}".
+          </div>
+        }
+      </div>
+    </div>
+  </section>
+
+  <!-- Comparison Grid -->
+  <section class="card mb-5">
+    <div class="card-body p-4 p-md-5">
+      @if (comparedBikes.length === 0) {
+        <article class="empty-profile text-center py-5">
+          <div class="empty-profile-icon mx-auto mb-4">
+            <i class="bi bi-columns-gap fs-3"></i>
+          </div>
+          <h2 class="fs-3 fw-bold mb-2 text-white">Compara motocicletas cara a cara</h2>
+          <p class="text-muted mb-4">
+            Selecciona una de tus motos (opcional), busca modelos del catálogo y agrega hasta 3 para ver la tabla comparativa.
+          </p>
+        </article>
+      } @else {
+        <div class="d-flex justify-content-between align-items-center mb-4">
+          <h3 class="fs-4 mb-0 text-white">Ficha Comparativa</h3>
+          <span class="badge bg-secondary border border-secondary text-muted">
+            @if (selectedUserMoto) {
+              1 moto propia ·
+            }
+            {{ comparedBikes.length }} / 3 del catálogo
+          </span>
+        </div>
+
+        <div class="table-responsive">
+          <table class="table table-bordered border-secondary alignment-middle">
+            <thead>
+              <tr class="bg-dark text-center">
+                <th style="width: 20%;" class="text-start align-middle fs-6">Característica</th>
+                @if (selectedUserMoto; as mine) {
+                  <th style="width: 20%;" class="p-3 align-middle text-center border-primary">
+                    <p class="tracking mb-1 text-primary">Mi moto</p>
+                    <h4 class="fs-5 text-white mb-1">{{ mine.marca }} {{ mine.modelo }}</h4>
+                    <p class="text-muted mb-0 small">Placa {{ mine.placa }} · {{ mine.anio }}</p>
+                  </th>
+                }
+                @for (bike of comparedBikes; track bike.id; let idx = $index) {
+                  <th style="width: 26.6%;" class="position-relative p-3 align-middle text-center">
+                    <button
+                      type="button"
+                      class="btn btn-sm btn-outline-danger position-absolute top-0 end-0 m-2"
+                      (click)="removeFromComparison(idx)"
+                      title="Eliminar de la comparacion"
+                    >
+                      <i class="bi bi-trash"></i>
+                    </button>
+                    <div class="mt-3">
+                      <p class="tracking mb-1">{{ bike.brand }}</p>
+                      <h4 class="fs-4 text-white mb-1">{{ bike.model }}</h4>
+                      <p class="text-muted mb-0 small">Año: {{ bike.year }}</p>
+                    </div>
+                  </th>
+                }
+                <!-- Empty slots to maintain table layout structure -->
+                @if (comparedBikes.length < 3) {
+                  @for (dummy of [].constructor(3 - comparedBikes.length); track $index) {
+                    <th style="width: 26.6%;" class="bg-dark text-muted text-center align-middle p-4 opacity-50 border-secondary">
+                      <div class="py-4">
+                        <i class="bi bi-plus-circle fs-3 mb-2 d-block text-secondary"></i>
+                        <span class="small">Espacio libre</span>
+                      </div>
+                    </th>
+                  }
+                }
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="fw-bold text-muted text-uppercase small">Categoría</td>
+                @if (selectedUserMoto) {
+                  <td class="text-center text-muted">N/D</td>
+                }
+                @for (bike of comparedBikes; track bike.id) {
+                  <td class="text-center">{{ bike.category || 'N/D' }}</td>
+                }
+                @if (comparedBikes.length < 3) {
+                  <td [attr.colSpan]="3 - comparedBikes.length" class="bg-panel-muted border-secondary"></td>
+                }
+              </tr>
+              <tr>
+                <td class="fw-bold text-muted text-uppercase small">Cilindrada</td>
+                @if (selectedUserMoto; as mine) {
+                  <td class="text-center font-monospace">{{ parseCilindraje(mine.cilindraje) }}</td>
+                }
+                @for (bike of comparedBikes; track bike.id) {
+                  <td class="text-center font-monospace">{{ bike.displacement ? bike.displacement + ' cc' : 'N/D' }}</td>
+                }
+                @if (comparedBikes.length < 3) {
+                  <td [attr.colSpan]="3 - comparedBikes.length" class="bg-panel-muted border-secondary"></td>
+                }
+              </tr>
+              <tr>
+                <td class="fw-bold text-muted text-uppercase small">Potencia</td>
+                @if (selectedUserMoto) {
+                  <td class="text-center text-muted">N/D</td>
+                }
+                @for (bike of comparedBikes; track bike.id) {
+                  <td class="text-center font-monospace text-warning">{{ bike.power ? bike.power + ' hp' : 'N/D' }}</td>
+                }
+                @if (comparedBikes.length < 3) {
+                  <td [attr.colSpan]="3 - comparedBikes.length" class="bg-panel-muted border-secondary"></td>
+                }
+              </tr>
+              <tr>
+                <td class="fw-bold text-muted text-uppercase small">Torque</td>
+                @if (selectedUserMoto) {
+                  <td class="text-center text-muted">N/D</td>
+                }
+                @for (bike of comparedBikes; track bike.id) {
+                  <td class="text-center font-monospace text-secondary">{{ bike.torque ? bike.torque + ' Nm' : 'N/D' }}</td>
+                }
+                @if (comparedBikes.length < 3) {
+                  <td [attr.colSpan]="3 - comparedBikes.length" class="bg-panel-muted border-secondary"></td>
+                }
+              </tr>
+              <tr>
+                <td class="fw-bold text-muted text-uppercase small">Motor (Cilindros/Tiempos)</td>
+                @if (selectedUserMoto) {
+                  <td class="text-center text-muted">N/D</td>
+                }
+                @for (bike of comparedBikes; track bike.id) {
+                  <td class="text-center text-capitalize">{{ bike.engineCylinder || 'N/D' }} ({{ bike.engineStroke || 'N/D' }})</td>
+                }
+                @if (comparedBikes.length < 3) {
+                  <td [attr.colSpan]="3 - comparedBikes.length" class="bg-panel-muted border-secondary"></td>
+                }
+              </tr>
+              <tr>
+                <td class="fw-bold text-muted text-uppercase small">Refrigeración</td>
+                @if (selectedUserMoto) {
+                  <td class="text-center text-muted">N/D</td>
+                }
+                @for (bike of comparedBikes; track bike.id) {
+                  <td class="text-center">{{ bike.coolingSystem || 'N/D' }}</td>
+                }
+                @if (comparedBikes.length < 3) {
+                  <td [attr.colSpan]="3 - comparedBikes.length" class="bg-panel-muted border-secondary"></td>
+                }
+              </tr>
+              <tr>
+                <td class="fw-bold text-muted text-uppercase small">Caja de Cambios</td>
+                @if (selectedUserMoto) {
+                  <td class="text-center text-muted">N/D</td>
+                }
+                @for (bike of comparedBikes; track bike.id) {
+                  <td class="text-center">{{ bike.gearbox || 'N/D' }}</td>
+                }
+                @if (comparedBikes.length < 3) {
+                  <td [attr.colSpan]="3 - comparedBikes.length" class="bg-panel-muted border-secondary"></td>
+                }
+              </tr>
+              <tr>
+                <td class="fw-bold text-muted text-uppercase small">Transmisión Final</td>
+                @if (selectedUserMoto) {
+                  <td class="text-center text-muted">N/D</td>
+                }
+                @for (bike of comparedBikes; track bike.id) {
+                  <td class="text-center">{{ bike.transmissionType || 'N/D' }}</td>
+                }
+                @if (comparedBikes.length < 3) {
+                  <td [attr.colSpan]="3 - comparedBikes.length" class="bg-panel-muted border-secondary"></td>
+                }
+              </tr>
+              <tr>
+                <td class="fw-bold text-muted text-uppercase small">Peso Seco</td>
+                @if (selectedUserMoto) {
+                  <td class="text-center text-muted">N/D</td>
+                }
+                @for (bike of comparedBikes; track bike.id) {
+                  <td class="text-center font-monospace">{{ bike.dryWeight ? bike.dryWeight + ' kg' : 'N/D' }}</td>
+                }
+                @if (comparedBikes.length < 3) {
+                  <td [attr.colSpan]="3 - comparedBikes.length" class="bg-panel-muted border-secondary"></td>
+                }
+              </tr>
+              <tr>
+                <td class="fw-bold text-muted text-uppercase small">Tanque Combustible</td>
+                @if (selectedUserMoto) {
+                  <td class="text-center text-muted">N/D</td>
+                }
+                @for (bike of comparedBikes; track bike.id) {
+                  <td class="text-center font-monospace">{{ bike.fuelCapacity ? bike.fuelCapacity + ' L' : 'N/D' }}</td>
+                }
+                @if (comparedBikes.length < 3) {
+                  <td [attr.colSpan]="3 - comparedBikes.length" class="bg-panel-muted border-secondary"></td>
+                }
+              </tr>
+              <tr>
+                <td class="fw-bold text-muted text-uppercase small">Altura del Asiento</td>
+                @if (selectedUserMoto) {
+                  <td class="text-center text-muted">N/D</td>
+                }
+                @for (bike of comparedBikes; track bike.id) {
+                  <td class="text-center font-monospace">{{ bike.seatHeight ? bike.seatHeight + ' mm' : 'N/D' }}</td>
+                }
+                @if (comparedBikes.length < 3) {
+                  <td [attr.colSpan]="3 - comparedBikes.length" class="bg-panel-muted border-secondary"></td>
+                }
+              </tr>
+              <tr>
+                <td class="fw-bold text-muted text-uppercase small">Frenos (Del./Tras.)</td>
+                @if (selectedUserMoto) {
+                  <td class="text-center text-muted">N/D</td>
+                }
+                @for (bike of comparedBikes; track bike.id) {
+                  <td class="text-center small">
+                    Del: {{ bike.frontBrakes || 'N/D' }} <br/>
+                    Tras: {{ bike.rearBrakes || 'N/D' }}
+                  </td>
+                }
+                @if (comparedBikes.length < 3) {
+                  <td [attr.colSpan]="3 - comparedBikes.length" class="bg-panel-muted border-secondary"></td>
+                }
+              </tr>
+              <tr>
+                <td class="fw-bold text-muted text-uppercase small">Llantas (Del./Tras.)</td>
+                @if (selectedUserMoto) {
+                  <td class="text-center text-muted">N/D</td>
+                }
+                @for (bike of comparedBikes; track bike.id) {
+                  <td class="text-center font-monospace small">
+                    Del: {{ bike.frontTire || 'N/D' }} <br/>
+                    Tras: {{ bike.rearTire || 'N/D' }}
+                  </td>
+                }
+                @if (comparedBikes.length < 3) {
+                  <td [attr.colSpan]="3 - comparedBikes.length" class="bg-panel-muted border-secondary"></td>
+                }
+              </tr>
+              <tr>
+                <td class="fw-bold text-muted text-uppercase small">Colores Disponibles</td>
+                @if (selectedUserMoto) {
+                  <td class="text-center text-muted">N/D</td>
+                }
+                @for (bike of comparedBikes; track bike.id) {
+                  <td class="text-center small text-muted">{{ bike.colorOptions || 'N/D' }}</td>
+                }
+                @if (comparedBikes.length < 3) {
+                  <td [attr.colSpan]="3 - comparedBikes.length" class="bg-panel-muted border-secondary"></td>
+                }
+              </tr>
+              <!-- Action Button Row -->
+              <tr class="bg-dark">
+                <td class="align-middle fw-bold text-muted text-uppercase small">Acciones</td>
+                @if (selectedUserMoto) {
+                  <td class="text-center text-muted align-middle">—</td>
+                }
+                @for (bike of comparedBikes; track bike.id) {
+                  <td class="text-center p-3 align-middle">
+                    <button
+                      type="button"
+                      class="btn btn-primary w-100"
+                      (click)="openRegisterModal(bike)"
+                    >
+                      <i class="bi bi-plus-lg"></i>
+                      Agregar a mis motos
+                    </button>
+                  </td>
+                }
+                @if (comparedBikes.length < 3) {
+                  <td [attr.colSpan]="3 - comparedBikes.length" class="bg-panel-muted border-secondary"></td>
+                }
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      }
+    </div>
+  </section>
+</div>
+
+<!-- Modal to Register Catalog Bike -->
+@if (modalOpen) {
+  <div
+    class="modal fade show d-block"
+    tabindex="-1"
+    style="background: rgba(0, 0, 0, 0.45)"
+    (click)="closeModal()"
+  >
+    <div
+      class="modal-dialog modal-lg modal-dialog-centered"
+      (click)="$event.stopPropagation()"
+    >
+      <form class="modal-content border border-secondary" [formGroup]="form" (ngSubmit)="onSubmitRegister()">
+        <div class="modal-header bg-panel border-bottom border-secondary">
+          <h5 class="modal-title fs-4 text-white">Agregar a mis vehiculos</h5>
+          <button
+            type="button"
+            class="btn-close"
+            aria-label="Cerrar"
+            (click)="closeModal()"
+          ></button>
+        </div>
+        <div class="modal-body p-4 bg-dark">
+          <!-- Read-only details from catalog -->
+          @if (selectedCatalogBike) {
+            <div class="vehicle-profile-card p-3 mb-4 bg-panel border border-secondary">
+              <p class="tracking mb-1">Informacion del catalogo</p>
+              <h4 class="fs-4 text-white mb-1">
+                {{ selectedCatalogBike.brand }} <span class="text-primary">{{ selectedCatalogBike.model }}</span>
+              </h4>
+              <p class="text-muted mb-0 small">
+                Año: {{ selectedCatalogBike.year }} · Cilindrada: {{ selectedCatalogBike.displacement ? selectedCatalogBike.displacement + ' cc' : 'N/D' }}
+              </p>
+            </div>
+          }
+
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label for="placa" class="form-label text-muted">Placa</label>
+              <input
+                id="placa"
+                class="form-control text-white bg-panel"
+                maxlength="10"
+                placeholder="Ej. XYZ999"
+                formControlName="placa"
+                [class.is-invalid]="form.controls.placa.touched && form.controls.placa.invalid"
+              />
+              <div class="invalid-feedback text-danger">
+                @if (form.controls.placa.errors?.['required']) {
+                  La placa es obligatoria.
+                } @else if (form.controls.placa.errors?.['minlength']) {
+                  La placa debe tener al menos 2 caracteres.
+                }
+              </div>
+            </div>
+
+            <div class="col-md-6">
+              <label for="estado" class="form-label text-muted">Estado Inicial</label>
+              <select id="estado" class="form-select text-white bg-panel" formControlName="estado">
+                <option value="activa">Activa</option>
+                <option value="mantenimiento">Mantenimiento</option>
+                <option value="inactiva">Inactiva</option>
+              </select>
+            </div>
+
+            <div class="col-12">
+              <label for="propietario" class="form-label text-muted">Propietario</label>
+              <input
+                id="propietario"
+                class="form-control text-white bg-panel"
+                formControlName="propietario"
+                [class.is-invalid]="form.controls.propietario.touched && form.controls.propietario.invalid"
+              />
+              <div class="invalid-feedback text-danger">
+                @if (form.controls.propietario.errors?.['required']) {
+                  El propietario es obligatorio.
+                } @else if (form.controls.propietario.errors?.['minlength']) {
+                  El nombre debe tener al menos 2 caracteres.
+                }
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer bg-panel border-top border-secondary">
+          <button
+            class="btn btn-outline-secondary"
+            type="button"
+            (click)="closeModal()"
+          >
+            Cancelar
+          </button>
+          <button class="btn btn-primary" type="submit" [disabled]="form.invalid">
+            <i class="bi bi-floppy2"></i>
+            Guardar en mis motos
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+}
+
+<style>
+  .comparador-search-card,
+  .comparador-search-card .card-body {
+    overflow: visible !important;
+  }
+
+  .comparador-search-results {
+    z-index: 1050;
+  }
+
+  .user-moto-card {
+    background: var(--bg-panel);
+    border-color: var(--line-color) !important;
+    color: inherit;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  }
+
+  .user-moto-card:hover {
+    border-color: var(--text-muted) !important;
+  }
+
+  .user-moto-card--selected {
+    border-color: var(--neon-red) !important;
+    box-shadow: 0 0 0 1px rgba(255, 42, 42, 0.35);
+  }
+
+  .hover-bg:hover {
+    background-color: var(--bg-panel-hover) !important;
+    transition: background-color 0.2s ease;
+  }
+  .bg-panel-muted {
+    background-color: rgba(25, 28, 38, 0.25) !important;
+  }
+</style>

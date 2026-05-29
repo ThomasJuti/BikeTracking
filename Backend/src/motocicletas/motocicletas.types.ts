@@ -7,6 +7,7 @@ export interface Moto {
   cilindraje: string;
   estado: string;
   propietario: string;
+  kilometrajeActual?: number | null;
   fechaRegistro: string;
 }
 
@@ -18,5 +19,6 @@ export interface Mantenimiento {
   fecha: string;
   costo: number;
   tecnico: string;
+  kilometraje?: number | null;
   fechaRegistro: string;
 }

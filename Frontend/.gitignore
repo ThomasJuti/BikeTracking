@@ -30,7 +30,7 @@ yarn-error.log
 .history/*
 
 # Miscellaneous
-/.angular/cache
+/.angular
 .sass-cache/
 /connect.lock
 /coverage
@@ -42,3 +42,4 @@ __screenshots__/
 # System files
 .DS_Store
 Thumbs.db
+.vercel

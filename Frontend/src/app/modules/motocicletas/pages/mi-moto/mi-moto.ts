@@ -16,6 +16,7 @@ import { MotoStatusBadgeComponent } from '../../components/moto-status-badge/mot
 import { SectionHeroComponent } from '../../components/section-hero/section-hero';
 import { Moto } from '../../models/moto.model';
 import { MotocicletasApiService } from '../../services/motocicletas-api.service';
+import { MaintenanceNotificationsService } from '../../services/maintenance-notifications.service';
 
 @Component({
   selector: 'app-mi-moto',
@@ -30,6 +31,7 @@ import { MotocicletasApiService } from '../../services/motocicletas-api.service'
 })
 export class MiMotoPageComponent implements OnInit {
   private readonly api = inject(MotocicletasApiService);
+  private readonly notifications = inject(MaintenanceNotificationsService);
   private readonly fb = inject(FormBuilder);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -55,6 +57,7 @@ export class MiMotoPageComponent implements OnInit {
     cilindraje: ['', [Validators.required, Validators.pattern(/^[1-9]\d*(?:\s*cc)?$/i)]],
     estado: ['activa', Validators.required],
     propietario: ['', [Validators.required, Validators.minLength(2)]],
+    kilometrajeActual: [null as number | null, [Validators.min(0)]],
   });
 
   ngOnInit(): void {
@@ -92,6 +95,7 @@ export class MiMotoPageComponent implements OnInit {
       cilindraje: '',
       estado: 'activa',
       propietario: '',
+      kilometrajeActual: null,
     });
     this.modalOpen = true;
   }
@@ -107,6 +111,7 @@ export class MiMotoPageComponent implements OnInit {
       cilindraje: moto.cilindraje,
       estado: moto.estado,
       propietario: moto.propietario,
+      kilometrajeActual: moto.kilometrajeActual ?? null,
     });
     this.modalOpen = true;
   }
@@ -137,6 +142,10 @@ export class MiMotoPageComponent implements OnInit {
       cilindraje: v.cilindraje.trim(),
       estado: v.estado,
       propietario: v.propietario.trim(),
+      kilometrajeActual:
+        v.kilometrajeActual != null && String(v.kilometrajeActual) !== ''
+          ? Number(v.kilometrajeActual)
+          : null,
     };
     const targetId = v.id;
 
@@ -146,6 +155,7 @@ export class MiMotoPageComponent implements OnInit {
           this.notify('success', 'Datos de tu moto actualizados.');
           this.closeModal();
           this.loadMotos();
+          this.notifications.refresh();
         },
         error: (e: Error) => this.notify('danger', e.message),
       });
@@ -155,6 +165,7 @@ export class MiMotoPageComponent implements OnInit {
           this.notify('success', 'Tu moto fue registrada.');
           this.closeModal();
           this.loadMotos();
+          this.notifications.refresh();
         },
         error: (e: Error) => this.notify('danger', e.message),
       });

@@ -1,4 +1,4 @@
-import { isPlatformBrowser, CurrencyPipe, DatePipe } from '@angular/common';
+import { isPlatformBrowser, CurrencyPipe, DatePipe, DecimalPipe } from '@angular/common';
 import { Component, inject, OnInit, PLATFORM_ID, ChangeDetectorRef } from '@angular/core';
 import {
   FormBuilder,
@@ -11,15 +11,17 @@ import { SectionHeroComponent } from '../../components/section-hero/section-hero
 import { Mantenimiento } from '../../models/mantenimiento.model';
 import { Moto } from '../../models/moto.model';
 import { MotocicletasApiService } from '../../services/motocicletas-api.service';
+import { MaintenanceNotificationsService } from '../../services/maintenance-notifications.service';
 
 @Component({
   selector: 'app-mantenimiento',
   standalone: true,
-  imports: [RouterLink, ReactiveFormsModule, SectionHeroComponent, CurrencyPipe, DatePipe],
+  imports: [RouterLink, ReactiveFormsModule, SectionHeroComponent, CurrencyPipe, DatePipe, DecimalPipe],
   templateUrl: './mantenimiento.html',
 })
 export class MantenimientoPageComponent implements OnInit {
   private readonly api = inject(MotocicletasApiService);
+  private readonly notifications = inject(MaintenanceNotificationsService);
   private readonly fb = inject(FormBuilder);
   private readonly platformId = inject(PLATFORM_ID);
   private readonly cdr = inject(ChangeDetectorRef);
@@ -39,6 +41,7 @@ export class MantenimientoPageComponent implements OnInit {
     fecha: ['', Validators.required],
     costo: [0 as number, [Validators.required, Validators.min(0), Validators.max(999999)]],
     tecnico: ['', [Validators.required, Validators.minLength(2)]],
+    kilometraje: [null as number | null, [Validators.min(0)]],
   });
 
   ngOnInit(): void {
@@ -111,6 +114,9 @@ export class MantenimientoPageComponent implements OnInit {
         fecha: v.fecha,
         costo: Number(v.costo),
         tecnico: v.tecnico.trim(),
+        kilometraje: v.kilometraje != null && v.kilometraje !== ('' as unknown as number)
+          ? Number(v.kilometraje)
+          : null,
       })
       .subscribe({
         next: () => {
@@ -122,8 +128,10 @@ export class MantenimientoPageComponent implements OnInit {
             fecha: '',
             costo: 0,
             tecnico: '',
+            kilometraje: null,
           });
           this.loadMotos();
+          this.notifications.refresh();
         },
         error: (e: Error) => this.notify('danger', e.message),
       });
@@ -137,6 +145,7 @@ export class MantenimientoPageComponent implements OnInit {
       fecha: '',
       costo: 0,
       tecnico: '',
+      kilometraje: null,
     });
   }
 

@@ -7,5 +7,6 @@ export interface Moto {
   cilindraje: string;
   estado: string;
   propietario: string;
+  kilometrajeActual?: number | null;
   fechaRegistro: string;
 }
